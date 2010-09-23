@@ -7,13 +7,16 @@
 require_once dirname(__FILE__) . '/fedora_proxy.class.php';
 require_once dirname(__FILE__) . '/writer/foxml_writer.class.php';
 require_once dirname(__FILE__) . '/switch.php';
+
+require_once(dirname(__FILE__) . '/fs/lib.php');
+require_once(dirname(__FILE__) . '/util/util.php');
+
 require_once($CFG->libdir.'/mime/mime_type.php');
 
-
 /**
- * Returns the Fedora owner ID. 
- *  
- * @return If the idnumber field is set for the current use returns its value. Otherwise returns the email address. 
+ * Returns the Fedora owner ID.
+ *
+ * @return If the idnumber field is set for the current use returns its value. Otherwise returns the email address.
  */
 function get_fedora_owner_id(){
 	global $USER;

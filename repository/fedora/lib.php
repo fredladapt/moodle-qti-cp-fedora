@@ -4,19 +4,6 @@ require_once($CFG->libdir.'/fedora/lib.php');
 require_once($CFG->libdir.'/debug_util.class.php');
 require_once($CFG->libdir.'/mime/mime_type.php');
 
-require_once(dirname(__FILE__) . '/util/util.php');
-
-require_once(dirname(__FILE__) . '/fs/fedora_fs_base.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_datastream.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_folder.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_mystuff.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_object.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_store.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_history.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_search.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_lastobjects.class.php');
-require_once(dirname(__FILE__) . '/fs/fedora_fs_sparql_query.class.php');
-
 /**
  *
  * @copyright (c) 2010 University of Geneva
@@ -73,38 +60,38 @@ class repository_fedora extends repository {
 		$size = 50;
 		$mform->addElement('text', $name = 'base_url', get_string('base_url', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('select', $name = 'api', get_string('api', 'repository_fedora'), self::get_api_names());
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('text', $name = 'client_certificate_file', get_string('client_certificate_file', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		//$mform->addElement('text', 'client_certificate_key_file', get_string('client_certificate_key_file', 'repository_fedora'), array('size' =>$size));
 		$mform->addElement('text', $name = 'client_certificate_key_file', get_string('client_certificate_key_file', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('password', $name = 'client_certificate_key_password', get_string('client_certificate_key_password', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('text', $name = 'check_target_certificate', get_string('check_target_certificate', 'repository_fedora'));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		//moodle bug cannot use checkbox for check_target_certificate
 		$mform->addElement('text', $name = 'target_ca_file', get_string('target_ca_file', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('text', $name = 'basic_login', get_string('basic_login', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
 		$mform->setDefault($name, 'fedoraAdmin');
-		
+
 		$mform->addElement('password', $name = 'basic_password', get_string('basic_password', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
-		
+
 		$mform->addElement('text', $name = 'max_results', get_string('max_results', 'repository_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'repository_fedora');
 		$mform->setDefault($name, 250);
-		
+
 	}
 
 	public function get_fedora_config(){
@@ -167,7 +154,7 @@ class repository_fedora extends repository {
 	public function get_link($url) {
 		return $url;
 	}
-
+/*
 	protected function get_object_datastream($pid){
 		$fedora = $this->get_fedora();
 		$ds = $fedora->get_object($pid);
@@ -189,7 +176,7 @@ class repository_fedora extends repository {
 			}
 		}
 		return false;
-	}
+	}*/
 
 	public function get_file($source, $filename) {
 		if($start = strpos($source,'objects/')){
@@ -201,7 +188,7 @@ class repository_fedora extends repository {
 		}else{
 			$id = $source;
 		}
-		
+
 		$id = explode('?', $id);
 		$pid = reset($id);
 		$dsID = count($id)>1 ? $id[1] : '';

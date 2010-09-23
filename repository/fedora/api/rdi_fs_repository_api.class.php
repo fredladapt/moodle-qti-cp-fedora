@@ -2,7 +2,7 @@
 
 /**
  * Access Fedora through the RDI - resouce index - API using FS - file system - objects.
- * 
+ *
  * See the fs folder for a list of file system objects.
  * Note: the resource index service has to be enabled and configured on the Fedora instance for this class to work.
  *
@@ -47,7 +47,7 @@ class rdi_fs_repository_api{
 		$result->set_max_results($for->get_option('max_results'));
 
 		global $CFG;
-		$history->set_thumbnail($CFG->wwwroot . '/repository/fedora/resource/history.png');
+		$history->set_thumbnail($CFG->wwwroot . '/lib/fedora/resource/history.png');
 		return $result;
 	}
 
@@ -159,7 +159,7 @@ class rdi_fs_repository_api{
 			);
 			$current_path[] = $item;
 		}
-		
+
 		$list = array();
 		foreach($items as $item){
 			if(!$item->is_system()){
