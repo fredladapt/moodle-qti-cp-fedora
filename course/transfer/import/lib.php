@@ -104,13 +104,13 @@ class import_settings{
 		return $result;
 	}
 
+	private $_section = null;
 	public function get_section(){
-		static $result = null;
-		if(empty($result) && !empty($this->section_id)){
+		if(empty($this->_section) && !empty($this->section_id)){
 			global $DB;
-			$result = $DB->get_record('course_sections', array('id'=>$this->section_id), '*', MUST_EXIST);
+			$this->_section = $DB->get_record('course_sections', array('id'=>$this->section_id), '*', MUST_EXIST);
 		}
-		return $result;
+		return $this->_section;
 	}
 
 	public function get_filename(){
@@ -129,13 +129,13 @@ class import_settings{
 		return $this->course_id;
 	}
 
+	private $_course = null;
 	public function get_course(){
-		static $result = null;
-		if(empty($result)){
+		if(empty($this->_course)){
 			global $DB;
-			$result = $DB->get_record('course', array('id'=>$this->course_id), '*', MUST_EXIST);
+			$this->_course = $DB->get_record('course', array('id'=>$this->course_id), '*', MUST_EXIST);
 		}
-		return $result;
+		return $this->_course;
 	}
 
 	public function get_level(){

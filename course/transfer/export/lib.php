@@ -186,24 +186,24 @@ class export_settings{
 		return $this->course_module_id;
 	}
 
+	private $_course_module = null;
 	public function get_course_module(){
-		static $result = null;
 		global $DB;
-		if(is_null($result) || $result->course_module_id != $this->course_module_id){
+		if(is_null($this->_course_module) || $this->_course_module->course_module_id != $this->course_module_id){
 			$mod = get_coursemodule_from_id('', $this->course_module_id, $this->course_id, false, MUST_EXIST);
 			if($mod){
-				$result = $DB->get_record($mod->modname, array('id'=>$mod->instance), '*', MUST_EXIST);
-				if($result){
-					$result->course_module_id = $this->course_module_id;
-					$result->module_name = $mod->modname;
+				$this->_course_module = $DB->get_record($mod->modname, array('id'=>$mod->instance), '*', MUST_EXIST);
+				if($this->_course_module){
+					$this->_course_module->course_module_id = $this->course_module_id;
+					$this->_course_module->module_name = $mod->modname;
 				}else{
-					$result = null;
+					$this->_course_module = null;
 				}
 			}else{
-				$result = null;
+				$this->_course_module = null;
 			}
 		}
-		return $result;
+		return $this->_course_module;
 	}
 
 	public function get_context(){
@@ -211,19 +211,19 @@ class export_settings{
 		return $result;
 	}
 
+	private $_module = null;
 	public function get_module(){
-		static $result = null;
 		global $DB;
-		if(is_null($result) || $result->id != $this->course_module_id){
+		if(is_null($this->_module) || $this->_module->id != $this->course_module_id){
 			$sql = "SELECT  md.*
     			FROM {course_modules} cm
                 JOIN {modules} md ON md.id = cm.module
             	WHERE cm.id={$this->course_module_id};";
 
-			$result = $DB->get_record_sql($sql);
-			$result = is_object($result) ? $result : null;
+			$this->_module = $DB->get_record_sql($sql);
+			$this->_module = is_object($this->_module) ? $this->_module : null;
 		}
-		return $result;
+		return $this->_module;
 	}
 
 	public function get_path(){

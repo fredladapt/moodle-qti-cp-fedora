@@ -31,6 +31,8 @@ class data_export extends mod_export{
 		return file_put_contents("$path/$href", $content);
 	}
 
+
+	private $_context = false;
 	/**
 	 * Returns the context used to store files.
 	 * On first call construct the result based on $mod.
@@ -39,16 +41,15 @@ class data_export extends mod_export{
 	 * @param $mod
 	 */
 	protected function get_context($mod=null){
-		static $result = false;
-		if($result){
-			return $result;
+		if($this->_context){
+			return $this->_context;
 		}
 
 		global $DB;
 		$module = $DB->get_record('modules', array('name'=>'data'),'*', MUST_EXIST);
 		$cm = $DB->get_record('course_modules', array('course'=>$mod->course, 'instance'=>$mod->id, 'module'=>$module->id),'*', MUST_EXIST);
-		$result = get_context_instance(CONTEXT_MODULE, $cm->id);
-		return $result;
+		$this->_context = get_context_instance(CONTEXT_MODULE, $cm->id);
+		return $this->_context;
 	}
 
 	protected function format_page($mod){

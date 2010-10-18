@@ -3,7 +3,7 @@
 require_once dirname(__FILE__) . '/../lib.php'; //required by callback
 
 class export_page{
-	
+
 	public function create(){
 		$result = new self();
 		return $result;
@@ -50,25 +50,25 @@ class export_page{
 		return $this->callbackclass != 'temp_file_portfolio_caller';
 	}
 
+	private $_modules_to_export = false;
 	public function modules_to_export(){
-		static $result = NULL;
-		if(!is_null($result)){
-			return $result;
+		if($this->_modules_to_export){
+			return $this->_modules_to_export;
 		}
-		
+
 		if($this->course_module_id){
-			$result = array($this->course_module_id);
+			$this->_modules_to_export = array($this->course_module_id);
 		}else if($this->action == 'export' && $this->selection_form->is_valid()){
-			$result = $this->selection_form->modules();
+			$this->_modules_to_export = $this->selection_form->modules();
 		}else{
-			$result = array();
+			$this->_modules_to_export = array();
 		}
-		return $result;
+		return $this->_modules_to_export;
 	}
 
 	public function export(){
 		global $PAGE;
-		
+
 		$modules = $this->modules_to_export();
 		if(empty($modules)){
 			return false;

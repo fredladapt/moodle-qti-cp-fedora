@@ -346,6 +346,7 @@ class data_import extends mod_import{
 		}
 	}
 
+	private $_data_record = false;
 	/**
 	 * On first call creates as data_record record used to link data object with its content.
 	 * On subsequent calls returns the previously created record.
@@ -353,23 +354,22 @@ class data_import extends mod_import{
 	 * @param object $data
 	 */
 	protected function get_data_record($data){
-		static $result = false;
-		if($result){
-			return $result;
+		if($this->_data_record){
+			return $this->_data_record;
 		}
 
 		global $USER, $DB;
 
-		$result = new object();
-		$result->id = null;
-		$result->userid = $USER->id;
-		$result->groupid = 0;
-		$result->dataid = $data->id;
-		$result->timecreated = $time = time();
-		$result->timemodified = $time;
-		$result->approved = true;
-		$result->id = $DB->insert_record('data_records', $result);
-		return $result->id ? $result : false;
+		$this->_data_record = new object();
+		$this->_data_record->id = null;
+		$this->_data_record->userid = $USER->id;
+		$this->_data_record->groupid = 0;
+		$this->_data_record->dataid = $data->id;
+		$this->_data_record->timecreated = $time = time();
+		$this->_data_record->timemodified = $time;
+		$this->_data_record->approved = true;
+		$this->_data_record->id = $DB->insert_record('data_records', $this->_data_record);
+		return $this->_data_record->id ? $this->_data_record : false;
 	}
 
 	/**
@@ -571,6 +571,7 @@ class data_import extends mod_import{
 
 	// UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL -- UTIL --
 
+	private $_context = false;
 	/**
 	 * Returns the context used to store files.
 	 * On first call construct the result based on $mod.
@@ -579,16 +580,15 @@ class data_import extends mod_import{
 	 * @param $mod
 	 */
 	protected function get_context($mod=null){
-		static $result = false;
-		if($result){
-			return $result;
+		if($this->_context){
+			return $this->_context;
 		}
 
 		global $DB;
 		$module = $DB->get_record('modules', array('name'=>'data'),'*', MUST_EXIST);
 		$cm = $DB->get_record('course_modules', array('course'=>$mod->course, 'instance'=>$mod->id, 'module'=>$module->id),'*', MUST_EXIST);
-		$result = get_context_instance(CONTEXT_MODULE, $cm->id);
-		return $result;
+		$this->_context = get_context_instance(CONTEXT_MODULE, $cm->id);
+		return $this->_context;
 	}
 
 	/**
