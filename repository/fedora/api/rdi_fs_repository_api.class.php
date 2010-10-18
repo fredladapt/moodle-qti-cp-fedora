@@ -21,10 +21,10 @@ class rdi_fs_repository_api{
 		return get_fedora_owner_id();
 	}
 
+	private $_store = null;
 	static function get_store($for){
-		static $result = NULL;
-		if(!is_null($result)){
-			return $result;
+		if(!is_null($this->_store)){
+			return $this->_store;
 		}
 		$owner = self::get_user_owner_id();
 
@@ -34,21 +34,21 @@ class rdi_fs_repository_api{
 		$two_weeks_ago = last_week(2);
 		$three_weeks_ago = last_week(3);
 
-		$result = new fedora_fs_store(get_string('root', 'repository_fedora'));
-		$result->add(new fedora_fs_mystuff());
-		$result->add($history = new fedora_fs_store(get_string('history', 'repository_fedora')));
+		$this->_store = new fedora_fs_store(get_string('root', 'repository_fedora'));
+		$this->_store->add(new fedora_fs_mystuff());
+		$this->_store->add($history = new fedora_fs_store(get_string('history', 'repository_fedora')));
 		$history->add($today = new fedora_fs_history(get_string('today', 'repository_fedora'), today(), NULL, $owner));
 		$history->add($this_week = new fedora_fs_history(get_string('this_week', 'repository_fedora'), $this_week, NULL, $owner));
 		$history->add(new fedora_fs_history(get_string('last_week', 'repository_fedora'), $last_week, $this_week, $owner));
 		$history->add(new fedora_fs_history(get_string('two_weeks_ago', 'repository_fedora'), $two_weeks_ago, $last_week, $owner));
 		$history->add(new fedora_fs_history(get_string('three_weeks_ago', 'repository_fedora'), $three_weeks_ago, $two_weeks_ago, $owner));
 
-		$result->aggregate(new fedora_fs_lastobjects());
-		$result->set_max_results($for->get_option('max_results'));
+		$this->_store->aggregate(new fedora_fs_lastobjects());
+		$this->_store->set_max_results($for->get_option('max_results'));
 
 		global $CFG;
 		$history->set_thumbnail($CFG->wwwroot . '/lib/fedora/resource/history.png');
-		return $result;
+		return $this->_store;
 	}
 
 	/**
