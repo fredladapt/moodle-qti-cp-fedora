@@ -102,29 +102,29 @@ class portfolio_plugin_fedora extends portfolio_plugin_push_base {
 		return $result;
 	}
 
+	private $_api = false;
 	/**
 	 * Returns the API selected during portfolio configurion.
 	 */
 	public function get_api(){
-		static $result = false;
-		if($result){
-			return $result;
+		if($this->_api){
+			return $this->_api;
 		}
 		$class = $this->get_config('api');
 
-		$result = array();
+		$this->_api = array();
 		$directory = dirname(__FILE__) .'/api/';
 		$files = scandir($directory);
 		$f = "$class.class.php";
 		foreach($files as $file){
 			if($file == $f){
 				include_once $directory.$file;
-				return $result = new $class($this);
+				return $this->_api = new $class($this);
 			}
 		}
 
 		include_once $directory . 'fedora_default_repository_api.class.php';
-		return $result = new fedora_default_repository_api($this);
+		return $this->_api = new fedora_default_repository_api($this);
 	}
 
 	/**

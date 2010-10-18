@@ -99,7 +99,7 @@ class UniGe_portfolio_api extends api_base{
 			}
 		}
 		$config['collections'] = isset($_POST['collection_id']) ? array($_POST['collection_id']) : array();
-		
+
 		$existing_pid = $this->get_object_by_label($config['title'], $config['owner']);
 		if($existing_pid){
 			$config['pid'] = $existing_pid;
@@ -182,7 +182,6 @@ class UniGe_portfolio_api extends api_base{
 	}
 
 	protected function get_collections(){
-		static $result = array();
 		$result = array();
 		$collection = $this->get_collection_default();
 		$result[$collection['id']] = $collection;
@@ -243,20 +242,20 @@ class UniGe_portfolio_api extends api_base{
 		return $result;
 	}
 
+	private $_licences = array();
 	protected function get_licences(){
-		static $result = array();
-		if($result){
-			return $result;
+		if($this->_licences){
+			return $this->_licences;
 		}
 
-		$result['﻿http://creativecommons.org/licenses/by/2.5/ch/'] = get_string('switch_license_ch', 'portfolio_fedora');
-		$result['http://creativecommons.org/licenses/by-nc/2.5/ch/'] = get_string('switch_license_nc', 'portfolio_fedora');
-		$result['http://creativecommons.org/licenses/by-nc-nd/2.5/ch/'] = get_string('switch_license_nc_nd', 'portfolio_fedora');
-		$result['http://creativecommons.org/licenses/by-nc-sa/2.5/ch/'] = get_string('switch_license_nc_sa', 'portfolio_fedora');
-		$result['http://creativecommons.org/licenses/by-nd/2.5/ch/'] = get_string('switch_license_nd', 'portfolio_fedora');
-		$result['http://creativecommons.org/licenses/by-sa/2.5/ch/'] = get_string('switch_license_sa', 'portfolio_fedora');
-		$result[''] = get_string('switch_license_content_defined', 'portfolio_fedora');
-		return $result;
+		$this->_licences['﻿http://creativecommons.org/licenses/by/2.5/ch/'] = get_string('switch_license_ch', 'portfolio_fedora');
+		$this->_licences['http://creativecommons.org/licenses/by-nc/2.5/ch/'] = get_string('switch_license_nc', 'portfolio_fedora');
+		$this->_licences['http://creativecommons.org/licenses/by-nc-nd/2.5/ch/'] = get_string('switch_license_nc_nd', 'portfolio_fedora');
+		$this->_licences['http://creativecommons.org/licenses/by-nc-sa/2.5/ch/'] = get_string('switch_license_nc_sa', 'portfolio_fedora');
+		$this->_licences['http://creativecommons.org/licenses/by-nd/2.5/ch/'] = get_string('switch_license_nd', 'portfolio_fedora');
+		$this->_licences['http://creativecommons.org/licenses/by-sa/2.5/ch/'] = get_string('switch_license_sa', 'portfolio_fedora');
+		$this->_licences[''] = get_string('switch_license_content_defined', 'portfolio_fedora');
+		return $this->_licences;
 	}
 
 	protected function get_discipline($id, $level){
@@ -265,17 +264,17 @@ class UniGe_portfolio_api extends api_base{
 		return $result;
 	}
 
+	private $_access_rights = array();
 	protected function get_access_rights(){
-		static $result = array();
-		if($result){
-			return $result;
+		if($this->_access_rights){
+			return $this->_access_rights;
 		}
 
-		$result['public'] = get_string('public', 'portfolio_fedora');
-		$result['private'] = get_string('private', 'portfolio_fedora');
-		//$result['federation'] = get_string('federation', 'portfolio_fedora');
-		$result['institution'] = get_string('institution', 'portfolio_fedora');
-		return $result;
+		$this->_access_rights['public'] = get_string('public', 'portfolio_fedora');
+		$this->_access_rights['private'] = get_string('private', 'portfolio_fedora');
+		//$this->_access_rights['federation'] = get_string('federation', 'portfolio_fedora');
+		$this->_access_rights['institution'] = get_string('institution', 'portfolio_fedora');
+		return $this->_access_rights;
 	}
 
 	protected function get_discipline_tree($id_el_name, $title_el_name){
