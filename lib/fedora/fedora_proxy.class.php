@@ -4,15 +4,22 @@ require_once dirname(__FILE__) . '/rest/rest_proxy_base.class.php';
 
 /**
  * A proxy to the fedora REST API. Transforms XML responses to arrays.
- * 
+ * Provides partial implementation to the SWITCH api.
+ *
  * @link https://wiki.duraspace.org/display/FCR30/REST+API#RESTAPI-ingest
+ * @link http://www.switch.ch/collection/spec/
  * @version 3.3
  * @copyright (c) 2010 University of Geneva
  * @license GNU General Public License - http://www.gnu.org/copyleft/gpl.html
- * @author laurent.opprecht@unige.ch, nicolas rod
+ * @author laurent.opprecht@unige.ch
+ * @author nicolas rod
  *
  */
 class FedoraProxy extends RestProxyBase{
+
+	const SWITCH_DISCLIPLINES_URL = 'https://collection.switch.ch/spec/2008/disciplines/disciplines.csv';
+	const SWITCH_LICENSES_URL = 'https://collection.switch.ch/spec/2008/licenses/licenses.csv';
+
 
 	const DUBLIN_CORE_DS_NAME          	= 'DC';
 	const LOM_DS_NAME					= 'LOM';
@@ -270,6 +277,162 @@ class FedoraProxy extends RestProxyBase{
 		return $this->SWITCH_find($args);
 	}
 
+	/**
+	 * Fetch an array of discliplines from SWITCH.
+	 * If an id is provided returns either the discipline if found or an empty array.
+	 * If no id is provided returns all discliplines.
+	 *
+	 * @link https://collection.switch.ch/spec/2008/disciplines/disciplines.csv
+	 * @param string $id
+	 * @return array
+	 */
+	public function SWITCH_get_disciplines($id=false){
+		static $disciplines = false;
+		if($disciplines === false){
+
+			$bom = pack("CCC",0xef,0xbb,0xbf); //UTF8 Byte Order Mark
+			$content = file_get_contents(dirname(__FILE__) . '/resource/switch/disciplines.csv');
+			$content = substr($content, 0,3) == $bom ? substr($content, 3) : $content;
+
+
+			/*
+			 * call SWITCH web site to get the list of disciplines
+			 *
+			 $disciplines = array();
+			 $options = array(
+			 CURLOPT_RETURNTRANSFER => true,     // return web page
+			 CURLOPT_HEADER         => false,    // don't return headers
+			 CURLOPT_FOLLOWLOCATION => true,     // follow redirects
+			 CURLOPT_ENCODING       => '',  		// handle all encodings
+			 CURLOPT_USERAGENT      => 'spider', // who am i
+			 CURLOPT_AUTOREFERER    => true,     // set referer on redirect
+			 CURLOPT_CONNECTTIMEOUT => 5,      // timeout on connect
+			 CURLOPT_TIMEOUT        => 5,      // timeout on response
+			 CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
+			 CURLOPT_SSL_VERIFYPEER => false,
+			 CURLOPT_SSL_VERIFYHOST => false,
+			 );
+			 $ch = curl_init(self::SWITCH_DISCLIPLINES_URL);
+			 curl_setopt_array($ch, $options);
+			 $content = curl_exec($ch);
+			 $content = utf8_encode($content);
+			 $err  = curl_errno($ch);
+			 curl_close($ch);
+			 if($err){
+				return $disciplines = array();
+				}
+
+				//$err  = curl_errno($ch);
+				//$errmsg = curl_error($ch);
+				//$header = curl_getinfo($ch);
+				*/
+
+			if($content){
+				$lines = explode("\n", $content);
+				foreach($lines as $line){
+					if($line = trim($line)){
+						$fields = explode(',', $line);
+						$record = array();
+
+						//remove upper byte encoding
+						$field_id = (int)$fields[0];
+						$field_id = $field_id ? $field_id : '';
+
+						$record['id'] = $field_id;
+						$record['parent'] = $fields[1];
+						$record['order'] = $fields[2];
+						$record['level'] = $fields[3];
+						$record['german'] = $fields[4];
+						$record['english'] = $fields[5];
+						$record['french'] = $fields[6];
+						$record['italian'] = $fields[7];
+						$record['shis_id'] = $fields[8];
+						$disciplines[$field_id] = $record;
+					}
+				}
+			}
+		}
+		if($id){
+			$result = isset($disciplines[$id]) ? $disciplines[$id] : array();
+		}else{
+			$result = $disciplines;
+		}
+		return $result;
+	}
+
+	/**
+	 * Fetch an array of licenses from SWITCH.
+	 * If an id is provided returns either the license if found or an empty array.
+	 * If no id is provided returns all licenses.
+	 *
+	 * @link https://collection.switch.ch/spec/2008/licenses/licenses.csv
+	 * @param string $id
+	 * @return array
+	 */
+	public function SWITCH_get_licenses($id=false){
+		static $licenses = false;
+		if($licenses === false){
+
+			$bom = pack("CCC",0xef,0xbb,0xbf); //UTF8 Byte Order Mark
+			$content = file_get_contents(dirname(__FILE__) . '/resource/switch/licenses.csv');
+			$content = substr($content, 0,3) == $bom ? substr($content, 3) : $content;
+
+			/*
+			 * call SWITCH web site to get the list of licenses
+			 *
+			 $licenses = array();
+			 $options = array(
+			 CURLOPT_RETURNTRANSFER => true,     // return web page
+			 CURLOPT_HEADER         => false,    // don't return headers
+			 CURLOPT_FOLLOWLOCATION => true,     // follow redirects
+			 CURLOPT_ENCODING       => '',  		// handle all encodings
+			 CURLOPT_USERAGENT      => 'spider', // who am i
+			 CURLOPT_AUTOREFERER    => true,     // set referer on redirect
+			 CURLOPT_CONNECTTIMEOUT => 5,      // timeout on connect
+			 CURLOPT_TIMEOUT        => 5,      // timeout on response
+			 CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
+			 CURLOPT_SSL_VERIFYPEER => false,
+			 CURLOPT_SSL_VERIFYHOST => false,
+			 );
+			 $ch = curl_init(self::SWITCH_LICENSES_URL);
+			 curl_setopt_array($ch, $options);
+			 $content = curl_exec($ch);
+			 $err  = curl_errno($ch);
+			 curl_close($ch);
+			 if($err){
+				return $licenses = array();
+				}
+
+				//$err  = curl_errno($ch);
+				//$errmsg = curl_error($ch);
+				//$header = curl_getinfo($ch);
+
+				*/
+
+			if($content){
+				$lines = explode("\n", $content);
+				foreach($lines as $line){
+					if(trim($line)){
+						$fields = explode(',', $line);
+						$record = array();
+						$record['id'] = $field_id = $fields[0];
+						$record['german'] = $fields[1];
+						$record['english'] = $fields[2];
+						$record['french'] = $fields[3];
+						$record['italian'] = $fields[4];
+						$licenses[$field_id] = $record;
+					}
+				}
+			}
+		}
+		if($id){
+			$result = isset($licenses[$id]) ? $licenses[$id] : array();
+		}else{
+			$result = $licenses;
+		}
+		return $result;
+	}
+
 	public function SWITCH_list_datastreams($pid){
 		$args = array();
 		$args['format'] = 'xml';
@@ -297,10 +460,10 @@ class FedoraProxy extends RestProxyBase{
 	 * As with the user interface, it can be invoked to retrieve tuples or triples. The syntax is described below.
 	 *
 	 * Note:
-	 * 		•Square brackets ( "[" and "]" ) indicate that the parameter is optional.
-	 * 		•As with all HTTP parameters, unsafe URI characters should be URI-escaped. For readability purposes, URI escaping is not shown below.
-	 * 		•The query and template parameters optionally take the value by reference – that is, a URL to a query or template can be given instead of the actual text.
-	 * 		•The flush parameter tells the resource index to ensure that any recently-added/modified/deleted triples are flushed to the triplestore before executing the query. This option can be desirable in certain scenarios, but for performance reasons, should be used sparingly when a process is making many API-M calls to Fedora in a short period of time: We have found that Mulgara generally achieves a much better overall update rate with large batches of triples.
+	 * 		â€¢Square brackets ( "[" and "]" ) indicate that the parameter is optional.
+	 * 		â€¢As with all HTTP parameters, unsafe URI characters should be URI-escaped. For readability purposes, URI escaping is not shown below.
+	 * 		â€¢The query and template parameters optionally take the value by reference â€“ that is, a URL to a query or template can be given instead of the actual text.
+	 * 		â€¢The flush parameter tells the resource index to ensure that any recently-added/modified/deleted triples are flushed to the triplestore before executing the query. This option can be desirable in certain scenarios, but for performance reasons, should be used sparingly when a process is making many API-M calls to Fedora in a short period of time: We have found that Mulgara generally achieves a much better overall update rate with large batches of triples.
 	 *
 	 * @param $query
 	 * @param $template
@@ -331,7 +494,7 @@ class FedoraProxy extends RestProxyBase{
 		$post = implode("\n", $args);
 		if(strtolower($format)=='sparql'){
 			$response_document = $this->execute('risearch', $args, 'get');
-			
+
 			$result = array();
 			if(isset($response_document)){
 				$xpath = new DOMXPath($response_document);
@@ -346,11 +509,54 @@ class FedoraProxy extends RestProxyBase{
 					}
 				}
 			}
+		}else if(strtolower($format)=='count'){
+			$result = $this->execute_raw('risearch', $args, 'get');
+			return $result;
+
 		}else{
-			debug('dd');die;
 			$result =  $this->execute_raw('risearch', $args, 'get');
 			//$result = $this->execute_raw('risearch', array(), 'post', array('content'=>$args));
 		}
+		return $result;
+	}
+
+	/**
+	 * Search for an object with a label=$label, owner=$owner and object belonging to $collection.
+	 *
+	 * @param string $label the object's label to search for
+	 * @param string $owner if provided search only for objects belonging to this owner
+	 * @param string $collection  if provided search only for objects belonging to this collection @todo not yet implemented
+	 * @return false|array If found returns the object's id. If not found returns false.
+	 */
+	public function get_object_by_label($label, $owner='', $collection=''){
+		$label = preg_quote($label);
+		$label = str_replace('\\', '\\\\', $label);
+		$query = 'select ?pid ?label ?lastModifiedDate ?ownerId from <#ri> where{'; '';
+		$query .= '?pid <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0> . ';
+		$query .= '?pid <fedora-view:lastModifiedDate> ?lastModifiedDate . ';
+		$query .= '?pid <fedora-model:label> ?label FILTER regex(?label , "^'.$label.'$", "i") . ';
+		$query .= '?pid <fedora-model:ownerId> ?ownerId  . ';
+		if($owner){
+			$query .= "?pid <fedora-model:ownerId> '$owner' . " ;
+		}
+		$query .= 'OPTIONAL {?pid <fedora-rels-ext:isCollection> ?col} FILTER( !BOUND(?col) || !?col) ';
+		$query .= '} ORDER BY DESC(?lastModifiedDate) LIMIT 1 ';
+
+		$items = $this->ri_search($query, '', 'tuples', 'Sparql', 'Sparql');
+
+		$result = false;
+		foreach($items as &$item){
+			$pid = str_replace('info:fedora/', '', $item['pid']['@uri']);
+			$item['pid'] = $pid;
+			if($result == false){
+				$result = $item;
+			}else{
+				if($result['lastmodifieddate']<$item['lastmodifieddate']){
+					$result = $item;
+				}
+			}
+		}
+		$result = $result ? $result : false;
 		return $result;
 	}
 
@@ -491,6 +697,9 @@ class FedoraProxy extends RestProxyBase{
 	}
 
 	public function get_object($pid, $parameters = array()){
+		if(empty($parameters)){
+			$parameters['format'] = 'xml';
+		}
 		$response_document = $this->execute("objects/$pid", $parameters, 'get');
 		$result = false;
 		if(isset($response_document)){
@@ -508,7 +717,7 @@ class FedoraProxy extends RestProxyBase{
 	}
 
 	/**
-	 * getObjectProfill
+	 * getObjectProfil
 	 * URL Syntax
 	 * 		/objects/{pid} ? [format] [asOfDateTime]
 	 * HTTP Method
@@ -530,7 +739,12 @@ class FedoraProxy extends RestProxyBase{
 	 */
 	public function get_object_profile($pid, $args = array()){
 		$args['format'] = 'xml';
-		$result =  $this->execute("objects/$pid", $args, 'get');
+		$response_document = $result =  $this->execute("objects/$pid", $args, 'get');
+		$result = false;
+		if(isset($response_document)){
+			$result = $this->xml_to_array($response_document, $response_document);
+			$result = $result ? reset($result) : false;
+		}
 		return $result;
 	}
 
@@ -557,6 +771,12 @@ class FedoraProxy extends RestProxyBase{
 	public function get_datastream_content($pid, $dsID){
 		$args = array();
 		$result =  $this->execute_raw("objects/$pid/datastreams/$dsID/content", $args, 'get');
+		return $result;
+	}
+
+	public function get_datastream_content_url($pid, $dsID){
+		$base = $this->get_config()->get_base_url();
+		$result = "$base/objects/$pid/datastreams/$dsID/content";
 		return $result;
 	}
 
@@ -618,9 +838,10 @@ class FedoraProxy extends RestProxyBase{
 		$result = $this->execute_raw("objects/$pid", $args, 'POST', $xml_content, 'text/xml');
 		return $result;
 	}
-	
+
 	/**
 	 * purgeObject
+	 *
 	 * URL Syntax
 	 * 		/objects/{pid} ? [logMessage]
 	 * HTTP Method
@@ -628,11 +849,11 @@ class FedoraProxy extends RestProxyBase{
 	 * HTTP Response
 	 * 		204
 	 * Parameters
-	 * 		{pid}  persistent identifier of the digital object      
-	 * 		logMessage  a message describing the activity being performed      
+	 * 		{pid}  persistent identifier of the digital object
+	 * 		logMessage  a message describing the activity being performed
 	 * Examples
 	 * 		DELETE: /objects/demo:29
-	 * 
+	 *
 	 * @param $pid
 	 * @param $logMessage
 	 */
@@ -645,7 +866,228 @@ class FedoraProxy extends RestProxyBase{
 		$result = $this->execute_raw("objects/$pid", $args, 'DELETE');
 		return $result;
 	}
-	
+
+	/**
+	 * Utility function. If a datastream exists modify it. Otherwise add it.
+	 *
+	 * @param $pid
+	 * @param $dsID
+	 * @param $dsLabel
+	 * @param $content
+	 * @param $mimeType
+	 * @param $versionable
+	 * @param $dsState
+	 * @param $controlGroup
+	 * @param $dsLocation
+	 * @param $altIDs
+	 * @param $formatURI
+	 * @param $checksum
+	 * @param $logMessage
+	 * @param $ignoreContent
+	 * @param $lastModifiedDate
+	 */
+	public function update_datastream($pid, $dsID, $dsLabel, $content=false, $mimeType = false, $versionable=true, $dsState='A', $controlGroup = 'M', $dsLocation=false, $altIDs = false, $formatURI = false, $checksum = false, $logMessage = false, $ignoreContent = false, $lastModifiedDate = false){
+		try{
+			return $this->modify_datastream($pid, $dsID, $dsLabel, $content, $mimeType, $versionable, $dsState, $dsLocation, $altIDs, $formatURI, $checksum, $logMessage, $ignoreContent, $lastModifiedDate);
+		}catch(Exception $e){
+			return $this->add_datastream($pid, $dsID, $dsLabel, $content, $mimeType, $versionable, $dsState, $controlGroup, $dsLocation, $altIDs, $formatURI, $checksum, $logMessage, $ignoreContent, $lastModifiedDate);
+		}
+	}
+
+	/**
+	 * addDatastream
+	 *
+	 * URL Syntax
+	 * 		/objects/{pid}/datastreams/{dsID} ? [controlGroup] [dsLocation] [altIDs] [dsLabel] [versionable] [dsState] [formatURI] [checksumType] [checksum] [mimeType] [logMessage]
+	 * HTTP Method
+	 * 		POST
+	 * HTTP Response
+	 * 		201
+	 * Parameters
+	 * 		Name  Description  Default  Options
+	 * 		{pid}  persistent identifier of the digital object
+	 * 		{dsID}  datastream identifier
+	 * 		controlGroup  one of "X", "M", "R", or "E" (Inline *X*ML, *M*anaged Content, *R*edirect, or *E*xternal Referenced)  X  X, M, R, E
+	 * 		dsLocation  location of managed or external datastream content
+	 * 		altIDs  alternate identifiers for the datastream
+	 * 		dsLabel  the label for the datastream
+	 * 		versionable  enable versioning of the datastream  true  true, false
+	 * 		dsState  one of "A", "I", "D" (*A*ctive, *I*nactive, *D*eleted)  A  A, I, D
+	 * 		formatURI  the format URI of the datastream
+	 * 		checksumType  the algorithm used to compute the checksum  DEFAULT  DEFAULT, DISABLED, MD5, SHA-1, SHA-256, SHA-385, SHA-512
+	 * 		checksum  the value of the checksum represented as a hexadecimal string
+	 * 		mimeType  the MIME type of the content being added, this overrides the Content-Type request header
+	 * 		logMessage  a message describing the activity being performed
+	 * 		multipart file as request content  datastream file (for Managed datastreams)
+	 * Examples
+	 * 		POST: /objects/demo:29/datastreams/NEWDS?controlGroup=X&dsLabel=New (with Multipart file)
+	 * 		POST: /objects/demo:29/datastreams/NEWDS?controlGroup=M&dsLocation=http://example:80/newds&dsLabel=New
+	 *
+	 *
+	 */
+	public function add_datastream($pid, $dsID, $dsLabel, $content=false, $mimeType = false, $versionable=true, $dsState='A', $controlGroup = 'M', $dsLocation=false, $altIDs = false, $formatURI = false, $checksum = false, $logMessage = false, $ignoreContent = false, $lastModifiedDate = false){
+		$args = array();
+
+		if($dsLocation !== false){
+			$args['dsLocation'] = $dsLocation;
+		}
+		if($dsLabel !== false){
+			$args['dsLabel'] = $dsLabel;
+		}
+		if($altIDs !== false){
+			$args['altIDs'] = $altIDs;
+		}
+		$args['versionable'] = $versionable;
+		if($dsState !== false){
+			$args['dsState'] = $dsState;
+		}
+		if($formatURI !== false){
+			$args['formatURI'] = $formatURI;
+		}
+		if($checksum !== false){
+			$args['checksum'] = $checksum;
+		}
+		if($logMessage !== false){
+			$args['logMessage'] = $logMessage;
+		}
+		if($ignoreContent !== false){
+			$args['ignoreContent'] = $ignoreContent;
+		}
+		if($lastModifiedDate !== false){
+			$args['lastModifiedDate'] = $lastModifiedDate;
+		}
+		if($controlGroup){
+			$args['controlGroup'] = $controlGroup;
+		}
+		$data_to_send = $content ? $content : null;
+		$mimeType = $mimeType ? $mimeType : '';
+		$result = $this->execute_raw("objects/$pid/datastreams/$dsID", $args, 'POST', $data_to_send, $mimeType);
+		return $result;
+	}
+
+	/**
+	 * modifyObject
+	 *
+	 * URL Syntax
+	 * 		/objects/{pid} ? [label] [ownerId] [state] [logMessage] [\lastModifiedDate]
+	 *
+	 * HTTP Method
+	 * 		PUT
+	 *
+	 * HTTP Response
+	 * 		200
+	 *
+	 * Parameters
+	 * 		Name  Description  Default  Options
+	 * 		{pid}  persistent identifier of the digital object
+	 * 		label  the new object label
+	 * 		ownerId  the id of the user to be listed at the object owner
+	 * 		state  the new object state - *A*ctive, *I*nactive, or *D*eleted  A  A, I, D
+	 * 		logMessage  a message describing the activity being performed
+	 * 		lastModifiedDate  date/time of the last (known) modification to the datastream, if the actual last modified date is later, a 409 response is returned
+	 *
+	 * Examples
+	 * 		PUT: /objects/demo:29?label=Updated
+	 * 		PUT: /objects/demo:29?state=D?logMessage=Deleted
+	 */
+	public function modify_object($pid, $label = false, $ownerId = false, $state = false, $logMessage = false,  $lastModifiedDate = false){
+		$args = array();
+
+		if($label !== false){
+			$args['label'] = $label;
+		}
+
+		if($ownerId !== false){
+			$args['$ownerId'] = $ownerId;
+		}
+		if($state !== false){
+			$args['state'] = $state;
+		}
+		if($logMessage !== false){
+			$args['logMessage'] = $logMessage;
+		}
+		if($lastModifiedDate !== false){
+			$args['lastModifiedDate'] = $lastModifiedDate;
+		}
+		$result = $this->execute_raw("objects/$pid", $args, 'PUT');
+		return $result;
+	}
+
+	/**
+	 * modifyDatastream
+	 *
+	 * URL Syntax
+	 * 		/objects/{pid}/datastreams/{dsID} ? [dsLocation] [altIDs] [dsLabel] [versionable] [dsState] [formatURI] [checksumType] [checksum] [mimeType] [logMessage] [ignoreContent] [lastModifiedDate]
+	 *
+	 * HTTP Method
+	 * 		PUT
+	 *
+	 * HTTP Response
+	 * 		200
+	 *
+	 * Parameters
+	 * 		Name  Description  Default  Options
+	 * 		{pid}  persistent identifier of the digital object
+	 * 		{dsID}  datastream identifier
+	 * 		dsLocation  location of datastream content
+	 * 		altIDs  alternate identifiers for the datastream
+	 * 		dsLabel  the label for the datastream
+	 * 		versionable  enable versioning of the datastream  the "versionable" property of the existing datastream  true, false
+	 * 		dsState  one of "A", "I", "D" (*A*ctive, *I*nactive, *D*eleted)  A  A, I, D
+	 * 		formatURI  the format URI of the datastream
+	 * 		checksumType  the algorithm used to compute the checksum  DEFAULT  DEFAULT, DISABLED, MD5, SHA-1, SHA-256, SHA-385, SHA-512
+	 * 		checksum  the value of the checksum represented as a hexadecimal string
+	 * 		mimeType  the MIME type of the content being added, this overrides the Content-Type request header
+	 * 		logMessage  a message describing the activity being performed
+	 * 		ignoreContent  tells the request handler to ignore any content included as part of the request, indicating that you do not intend to update the datasteam content. This is primarily provided to allow the use of client tools which always require content to be included as part of PUT requests.  false  true, false
+	 * 		lastModifiedDate  date/time of the last (known) modification to the datastream, if the actual last modified date is later, a 409 response is returned
+	 * 		multipart file as request content  file to replace existing datastream (for Managed datastreams)
+	 *
+	 * Examples
+	 * 		PUT: /objects/demo:35/datastreams/HIGH (with Multipart file)
+	 * 		PUT: /objects/demo:35/datastreams/HIGH?dsLocation=http://example:80/highDS?logMessage=Update
+	 *
+	 */
+	public function modify_datastream($pid, $dsID, $dsLabel, $content=false, $mimeType = false, $versionable=false, $dsState=false, $dsLocation=false, $altIDs = false, $formatURI = false, $checksum = false, $logMessage = false, $ignoreContent = false, $lastModifiedDate = false){
+
+		$ignoreContent = $content ? $ignoreContent : true;
+		$data_to_send = $content ? $content : null;
+		$mimeType = $mimeType ? $mimeType : '';
+
+		$args = array();
+		if($dsLocation !== false){
+			$args['dsLocation'] = $dsLocation;
+		}
+		if($dsLabel !== false){
+			$args['dsLabel'] = $dsLabel;
+		}
+		if($altIDs !== false){
+			$args['altIDs'] = $altIDs;
+		}
+		$args['versionable'] = $versionable;
+
+		if($dsState !== false){
+			$args['dsState'] = $dsState;
+		}
+		if($formatURI !== false){
+			$args['formatURI'] = $formatURI;
+		}
+		if($checksum !== false){
+			$args['checksum'] = $checksum;
+		}
+		if($logMessage !== false){
+			$args['logMessage'] = $logMessage;
+		}
+		if($ignoreContent !== false){
+			$args['ignoreContent'] = $ignoreContent;
+		}
+		if($lastModifiedDate !== false){
+			$args['lastModifiedDate'] = $lastModifiedDate;
+		}
+		$result = $this->execute_raw("objects/$pid/datastreams/$dsID", $args, 'PUT', $data_to_send, $mimeType);
+		return $result;
+	}
+
 	/**
 	 * Returns true if the object is to be returned by queries. False otherwise.
 	 * @param $node
@@ -690,7 +1132,7 @@ class FedoraProxy extends RestProxyBase{
 					if(!empty($field_name)){
 						$value = $field->nodeValue;
 						$f = strtolower($field_name);
-						if($f == 'created' || $f == 'createddate' || $f == 'lastmodifieddate'){
+						if($f == 'created' || $f == 'modified' || $f == 'createddate' || $f == 'lastmodifieddate' || $f == 'objcreatedate' || $f == 'objlastmoddate'){
 							$value = self::parse_date($value);
 						}
 						if(isset($object[$field_name])){

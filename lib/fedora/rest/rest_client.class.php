@@ -64,7 +64,7 @@ class RestClient{
 	 * @var string
 	 */
 	private $data_to_send_mimetype = null;
-	 
+
 	public function __construct($config = null){
 		$this->config = $config;
 		$this->set_default_mode();
@@ -177,7 +177,7 @@ class RestClient{
 	 */
 	public function set_data_to_send($data_to_send, $content_mimetype = null){
 		$this->data_to_send = $data_to_send;
-		 
+
 		if(isset($content_mimetype)){
 			$this->data_to_send_mimetype = $content_mimetype;
 		}
@@ -244,6 +244,9 @@ class RestClient{
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->http_method);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
+		$time = ini_get('max_execution_time');
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $time); //should not wait forever !
+
 		if($this->get_check_target_certificate())
 		{
 			$this->setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
@@ -256,27 +259,19 @@ class RestClient{
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 		}
 
-		 
+
 		$this->setopt($curl, CURLOPT_SSLCERT, $this->get_client_certificate_file());
 		$this->setopt($curl, CURLOPT_SSLCERTPASSWD, $this->get_client_certificate_key_password());
 		//$this->setopt($curl, CURLOPT_SSLCERTTYPE, 'PEM');
 		$this->setopt($curl, CURLOPT_SSLKEY, $this->get_client_certificate_key_file());
 		$this->setopt($curl, CURLOPT_SSLKEYPASSWD, $this->get_client_certificate_key_password());
-		
+
 		$this->setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 		$this->setopt($curl, CURLOPT_MAXREDIRS, 10);
-		
-		
-		//echo file_get_contents($this->get_client_certificate_file());die;
-		
-		 
-		//debug(realpath($this->get_client_certificate_file())); 
-		//debug($this->get_client_certificate_key_password());
-		//die;
 
 		$login = $this->get_basic_login();
 		$password = $this->get_basic_password();
-				
+
 		if(!empty($login)){
 			curl_setopt($curl, CURLOPT_USERPWD, "$login:$password");
 		}
@@ -307,7 +302,7 @@ class RestClient{
 					 * e.g:
 					 * 		$this->data_to_send['file'] --> array('myDocument.pdf' => '@/path/to/file')
 					 */
-					
+
 					curl_setopt($curl, CURLOPT_POSTFIELDS, $this->data_to_send['file']);
 				}
 
@@ -330,21 +325,23 @@ class RestClient{
 		{
 			curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 		}
-		
-		$response_content   = curl_exec($curl);
-		
-		$response_http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		$response_mime_type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
-		$response_error     = curl_error($curl);
-		
-		//debug($response_content); echo "\n<br/>";
-		//debug($response_http_code); echo "\n<br/>";
-		//debug($response_mime_type); echo "\n<br/>";
-		//debug($response_error); echo "\n<br/>";
 
-		$result->set_response_content($response_content);
-		$result->set_response_http_code($response_http_code);
-		$result->set_response_mime_type($response_mime_type);
+		try{
+			$response_content = curl_exec($curl);
+
+			$response_http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+			$response_mime_type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
+			$response_error     = curl_error($curl);
+
+			$result->set_response_content($response_content);
+			$result->set_response_http_code($response_http_code);
+			$result->set_response_mime_type($response_mime_type);
+		}catch(Exception $e){
+			curl_close($curl);
+			throw $e;
+		}
+
+		curl_close($curl);
 
 		if(isset($response_error) && strlen($response_error) > 0)
 		{
@@ -354,8 +351,6 @@ class RestClient{
 		{
 			$result->set_response_error('The REST request returned an HTTP error code of ' . $response_http_code . ' (' . $this->get_http_code_translation($response_http_code) . ')');
 		}
-
-		curl_close($curl);
 
 		return $result;
 	}

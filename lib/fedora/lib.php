@@ -6,18 +6,20 @@
 
 require_once dirname(__FILE__) . '/fedora_proxy.class.php';
 require_once dirname(__FILE__) . '/writer/foxml_writer.class.php';
+require_once dirname(__FILE__) . '/reader/foxml_reader.class.php';
 require_once dirname(__FILE__) . '/switch.php';
 
+require_once(dirname(__FILE__).'/../mime/mime_type.php');
 require_once(dirname(__FILE__) . '/fs/lib.php');
 require_once(dirname(__FILE__) . '/util/util.php');
 
-require_once($CFG->libdir.'/mime/mime_type.php');
 
 /**
  * Returns the Fedora owner ID.
  *
  * @return If the idnumber field is set for the current use returns its value. Otherwise returns the email address.
  */
+/*
 function get_fedora_owner_id(){
 	global $USER;
 	if(!empty($USER->idnumber)){
@@ -25,7 +27,7 @@ function get_fedora_owner_id(){
 	}else{
 		return $USER->email;
 	}
-}
+}*/
 
 /**
  * Standard metadata used by Fedora.
@@ -41,10 +43,13 @@ class fedora_object_meta{
 	public $mime = '';
 	public $label = '';
 	public $owner = '';
-	public $createdDate;
-	public $lastModifiedDate;
+	public $createdDate; //auto-assigned by fedora
+	public $lastModifiedDate; //auto-assigned by fedora
 	public $is_collection = false;
 	public $collections = array();
+	public $thumbnail = '';
+	public $thumbnail_label = '';
+	public $thumbnail_mime = '';
 
 	public function __construct(){
 		$this->createdDate = $this->lastModifiedDate = time();
@@ -78,6 +83,14 @@ function fedora_content_to_foxml($content, fedora_object_meta $meta){
 		$w->add_binaryContent($content);
 	}
 
+	//Thumbnail
+	if($meta->thumbnail){
+		$w = $o->add_datastream('THUMBNAIL', 'A', 'M', true);
+		$w = $w->add_datastreamVersion('OBJECT1.0', $meta->thumbnail_label, $meta->lastModifiedDate, $meta->thumbnail_mime);
+		$w->add_binaryContent($meta->thumbnail);
+
+	}
+
 	//RELS-EXT
 	$w = $o->add_datastream('RELS-EXT', 'A', 'X', false);
 	$w = $w->add_datastreamVersion('RELS-EXT1.0', 'Relationships to other objects', $date, 'application/rdf+xml', 'info:fedora/fedora-system:FedoraRELSExt-1.0');
@@ -91,11 +104,9 @@ function fedora_content_to_foxml($content, fedora_object_meta $meta){
 	foreach($collections as $collection){
 		$w->add_rel_isMemberOfCollection($collection);
 	}
-	//@todo: add pid prefix unige?
+
 	$w->add_oai_itemID($meta->pid);
 
-	//@todo: change that
-	$o->save("C:\\Documents and Settings\\lo\\Bureau\\text.xml");
 	return $o->saveXML();
 
 }
