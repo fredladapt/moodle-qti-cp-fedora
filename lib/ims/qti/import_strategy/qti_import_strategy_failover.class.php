@@ -5,7 +5,7 @@
  * Meant to be called if no other strategy is able to extract a meaningful value.
  * Returns acceptable default values for the base class interface.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

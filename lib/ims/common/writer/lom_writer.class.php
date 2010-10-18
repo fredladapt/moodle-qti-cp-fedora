@@ -6,7 +6,7 @@ require_once  dirname(__FILE__) .'/ims_xml_writer.class.php';
  * Utility class used to generate LOM IEEE 1484.12.1 XML schemas.
  * Basic implementation. 
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

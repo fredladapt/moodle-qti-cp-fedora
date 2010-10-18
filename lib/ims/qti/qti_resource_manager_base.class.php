@@ -6,7 +6,7 @@ require_once dirname(dirname(__FILE__)) .'/main.php';
  * Base class used to translate urls/paths and to keep track of external ressources which need to be copied alongside the question.
  * I.e. images, objects, etc.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

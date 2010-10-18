@@ -6,7 +6,7 @@ require_once dirname(__FILE__) .'/qti_renderer_base.class.php';
  * Partial renderer. Used to extract parts - question text, answers, etc - for import.
  * Do not output interactions as HTML elements but as spans.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

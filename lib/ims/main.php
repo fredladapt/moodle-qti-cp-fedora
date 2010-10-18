@@ -14,7 +14,12 @@
  * For further information.
  * 
  * Sub folders:
-  *  
+ * 
+ * chamilo
+ * -------
+ * Chamilo related classes used by the export/import modules. Other folders do not have dependencies 
+ * to Chamilo.
+ *  
  * common
  * ------
  * IMS specific library shared by QTI and CP
@@ -56,6 +61,9 @@ require_once_all(dirname(__FILE__) .'/cp/*.class.php');
 require_once_all(dirname(__FILE__) .'/cp/writer/*.class.php');
 require_once_all(dirname(__FILE__) .'/cp/reader/*.class.php');
 
+require_once_all(dirname(__FILE__) .'/chamilo/*.class.php');
+require_once_all(dirname(__FILE__) .'/chamilo/import/*.class.php');
+require_once_all(dirname(__FILE__) .'/chamilo/export/*.class.php');
 
 
 

@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . '/qti_resource_manager_base.class.php';
  * Class used to translate urls/paths and to keep track of external ressources which need to be copied alongside the question.
  * I.e. images, objects, etc.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

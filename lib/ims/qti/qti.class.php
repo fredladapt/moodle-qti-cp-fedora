@@ -3,7 +3,7 @@
 /**
  * Helper class. Contains constants, tags and helper functions.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */
@@ -331,7 +331,7 @@ class Qti{
 	}
 
 	public static function get_tool_name(){
-		return 'imsqti:unige:moodle';
+		return 'imsqti:unige:chamilo';
 	}
 	
 	public static function get_tool_version(){

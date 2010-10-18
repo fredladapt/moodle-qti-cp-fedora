@@ -5,7 +5,7 @@ require_once dirname(__FILE__) . '/qti_resource_manager_base.class.php';
 /**
  * Used to translate paths/URLs that need to be renamed during exportation.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

@@ -7,7 +7,7 @@
  * 
  * Note: a better, more solid, approach would be to generate random string from the regex.  
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

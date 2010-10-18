@@ -6,7 +6,7 @@ require_once dirname(dirname(__FILE__)) .'/main.php';
  * Base class for QTI renderers. I.e. classes which render the qti file to a specific format.
  * Used to render Qti items to HTML and to Moodle's Cloze format.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

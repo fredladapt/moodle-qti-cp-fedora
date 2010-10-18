@@ -4,9 +4,9 @@
  * 
  * MathML tags.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * 
- * @licence GNU General Public License
+ * @license GNU General Public License
  * @author laurent.opprecht@unige.ch
  *
  */

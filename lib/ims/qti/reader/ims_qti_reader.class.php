@@ -4,7 +4,7 @@
  * Helper class to read a QTI XML file.
  * Add a few helper methods.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

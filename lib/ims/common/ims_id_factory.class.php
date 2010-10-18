@@ -3,7 +3,7 @@
 /**
  * Utility class to generate unique ids. Generates either local or "unique" ids.
  * 
- * University of Geneva 
+ * @copyright (c) 2010 University of Geneva 
  * @author laurent.opprecht@unige.ch
  *
  */

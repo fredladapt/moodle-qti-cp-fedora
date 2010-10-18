@@ -6,7 +6,7 @@ require_once  dirname(__FILE__) . '/ims_xml_reader.class.php';
  * Empty object pattern for xml reader.
  * Either does nothing or returns expected default values;
  *
- * University of Geneva
+ * @copyright (c) 2010 University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
@@ -77,7 +77,7 @@ class ImsXmlReaderEmpty extends ImsXmlReader
     	return $this;
     }
 
-	public function children($index = null){
+	public function children(){
 		return array();
 	}
 
@@ -110,10 +110,10 @@ class ImsXmlReaderEmpty extends ImsXmlReader
     }
 
     public function getIterator() {
-        return new IteratorEmpty();
+        return new ImsIteratorEmpty();
     }
 
-	public function text(){
+    public function text(){
     	return '';
     }
 
@@ -126,11 +126,11 @@ class ImsXmlReaderEmpty extends ImsXmlReader
 /**
  * Empty object pattern for Iterator. I.e. an iterator over an empty collection.
  *
- * University of Geneva
+ * @copyright (c) 2010 University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
-class IteratorEmpty implements Iterator
+class ImsIteratorEmpty implements Iterator
 {
     public function rewind() {
     	//do nothing
