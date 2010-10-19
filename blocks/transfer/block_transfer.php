@@ -1,6 +1,7 @@
 <?php
 
-require_once $CFG->dirroot . '/lib/debug_util.class.php';
+include_once $CFG->dirroot . '/lib/debug_util.class.php';
+
 require_once($CFG->dirroot.'/course/transfer/export/lib.php');
 
 if(!function_exists('page')){
@@ -44,7 +45,7 @@ if(!function_exists('db')){
  *
  */
 class block_transfer extends block_list {
-	
+
 	function init() {
 		$this->title = get_string('pluginname', __CLASS__);
 	}
@@ -61,9 +62,9 @@ class block_transfer extends block_list {
 	 */
 	function applicable_formats() {
 		return array(
-			'site-index ' => false,   
+			'site-index ' => false,
 			'course' => true,
-			//'mod' => true,  
+			//'mod' => true,
 		);
 	}
 
@@ -74,7 +75,7 @@ class block_transfer extends block_list {
 	public function course_module_id(){
 		return is_object(page()->cm) ? page()->cm->id : '';
 	}
-	
+
 	public function module(){
 		if(!is_object(page()->cm)){
 			return null;

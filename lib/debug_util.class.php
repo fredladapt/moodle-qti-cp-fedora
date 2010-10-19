@@ -1,7 +1,5 @@
 <?php
 
-
-
 if(!class_exists('DebugUtil2')){
 	/**
 	 * Helper class used for debuging
@@ -36,7 +34,7 @@ if(!class_exists('DebugUtil2')){
 				if(preg_match($filter, $errfile)){
 					return;
 				}
-					
+
 			}
 
 			/*if($errno == E_DEPRECATED ){
@@ -153,7 +151,7 @@ if(!class_exists('DebugUtil2')){
 			}
 			$result .= '<table cellspacing="5px"><tbody>';
 			foreach($trace as $call){
-					
+
 				$args = $call['args'];
 				$arg_result = '(';
 				foreach($args as $arg){
@@ -213,10 +211,10 @@ if(!class_exists('DebugUtil2')){
 			switch ($error_number) {
 				case E_USER_ERROR:
 					return 'User Error';
-						
+
 				case E_USER_WARNING:
 					return 'User Warning';
-						
+
 				case E_USER_NOTICE:
 					return 'User Notice';
 
@@ -241,7 +239,7 @@ if(!class_exists('DebugUtil2')){
 
 				case E_DEPRECATED:
 					return 'Deprecated';
-						
+
 				default:
 					return "Unknown error type ($error_number)";
 			}
@@ -253,7 +251,7 @@ if(!class_exists('DebugUtil2')){
 			if(is_callable($f)){
 				$object = call_user_func($f);
 			}
-			 
+
 			echo '<div class="debug">';
 
 			$calledFrom = debug_backtrace();
@@ -328,7 +326,6 @@ if(!function_exists('debug')){
 	}
 }
 
-DebugUtil2::set_default_error_handler();
 
 
 

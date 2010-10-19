@@ -5,41 +5,41 @@
  * ---
  * Library to export/import to/from QTI and CP formats.
  * Used by the QTI and CP export/import modules.
- * 
- * See: 
- * 
+ *
+ * See:
+ *
  * 		CP: http://www.imsglobal.org/content/packaging
  * 		QTI: http://www.imsglobal.org/question
- * 
+ *
  * For further information.
- * 
+ *
  * Sub folders:
- * 
+ *
  * chamilo
  * -------
- * Chamilo related classes used by the export/import modules. Other folders do not have dependencies 
+ * Chamilo related classes used by the export/import modules. Other folders do not have dependencies
  * to Chamilo.
- *  
+ *
  * common
  * ------
  * IMS specific library shared by QTI and CP
- * 
+ *
  * cp
  * --
  * IMS CP related classes
- * 
+ *
  * lib
  * ---
  * Generic libraries used by this package. Do not contains anything specific to IMS.
- * 
+ *
  * qti
  * ---
  * IMS QTI related classes
- * 
- * 
+ *
+ *
  */
 
-require_once dirname(__FILE__) .'/lib/debug_util.class.php';
+include_once dirname(__FILE__) .'/lib/debug_util.class.php';
 require_once dirname(__FILE__) .'/lib/util.php';
 
 require_once_all(dirname(__FILE__) .'/lib/*.class.php');
