@@ -53,15 +53,15 @@ class UniGe_portfolio_api extends api_base{
 		//$mform->addElement('text', 'collection_title', get_string('collections', 'portfolio_fedora'), array('size' =>$size, 'readonly'=>'readonly'));
 		//$mform->addElement('hidden', 'collection_id', get_string('collections', 'portfolio_fedora'), array('size' =>$size, 'readonly'=>'readonly'));
 
-		if($default_collection = $this->get_collection_default()){
-			//$mform->setDefault('collection_title', $default_collection['title']);
-			$mform->setDefault('collection_id', $default_collection['id']);
-		}
+		//if($default_collection = $this->get_collection_default()){
+		//$mform->setDefault('collection_title', $default_collection['title']);
+		//	$mform->setDefault('collection_id', $default_collection['id']);
+		//}
 
-		if($collection_tree = $this->get_collection_tree('collection_id', 'collection_title')){
-			//$mform->addRule('collection_title', get_string('field_required', 'portfolio_fedora'), 'required');
-			$mform->addElement('static', '', '', $this->get_collection_tree('collection_id', 'collection_title'));
-		}
+		//if($collection_tree = $this->get_collection_tree('collection_id', 'collection_title')){
+		//$mform->addRule('collection_title', get_string('field_required', 'portfolio_fedora'), 'required');
+		//	$mform->addElement('static', '', '', $this->get_collection_tree('collection_id', 'collection_title'));
+		//}
 		$mform->addElement('header', 'rights_header', get_string('rights', 'portfolio_fedora'));
 
 		$licences = $this->get_licences();
@@ -85,7 +85,7 @@ class UniGe_portfolio_api extends api_base{
 	 */
 	protected function get_collection_default(){
 		$result = array();
-		$result['id'] = 'LOR:49';
+		$result['id'] = 'unigelom:learning_objects';
 		$result['title'] = 'Unige';
 		return $result;
 	}
@@ -98,7 +98,9 @@ class UniGe_portfolio_api extends api_base{
 				$config[$item] = $_POST[$item];
 			}
 		}
-		$config['collections'] = isset($_POST['collection_id']) ? array($_POST['collection_id']) : array();
+
+		$collection = $this->get_collection_default();
+		$config['collections'] = $collection['id'];
 
 		$existing_pid = $this->get_object_by_label($config['title'], $config['owner']);
 		if($existing_pid){
@@ -107,10 +109,11 @@ class UniGe_portfolio_api extends api_base{
 		$portfolio = $this->get_portfolio();
 		$portfolio->set_export_config($config);
 
+		unset($config['collections']);
+
 		//changes from ids to human readable text
 		$config['discipline'] = isset($_POST['discipline_text']) ? $_POST['discipline_text'] :'';
-		$collection = $this->get_collection_default();
-		$config['collections'] = $collection['title'];
+
 		$licenses = $this->get_licences();
 		$config['license'] = isset($_POST['license']) ? $licenses[$_POST['license']] :'';
 		$rights = $this->get_access_rights();
@@ -126,6 +129,9 @@ class UniGe_portfolio_api extends api_base{
 				$result[get_string($key, 'portfolio_fedora')] = is_array($value) ? implode(', ', $value) : $value;
 			}
 		}
+
+		$collection = $this->get_collection_default();
+		$config['collections'] = $collection['title'];
 
 		$result = empty($result) ? false : $result;
 		return $result;
