@@ -22,7 +22,11 @@ require_once(dirname(__FILE__) . '/util/util.php');
 /*
 function get_fedora_owner_id(){
 	global $USER;
-	return $USER->idnumber ? $USER->idnumber : $USER->email;
+	if(!empty($USER->idnumber)){
+		return $USER->idnumber;
+	}else{
+		return $USER->email;
+	}
 }*/
 
 /**

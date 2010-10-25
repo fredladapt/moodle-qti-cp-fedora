@@ -85,7 +85,7 @@ class UniGe_portfolio_api extends api_base{
 	 */
 	protected function get_collection_default(){
 		$result = array();
-		$result['id'] = 'unigelom:learning_objects';
+		$result['id'] = 'info:fedora/unigelom:learning_objects';
 		$result['title'] = 'Unige';
 		return $result;
 	}
