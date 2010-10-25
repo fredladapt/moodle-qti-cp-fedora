@@ -43,24 +43,20 @@ class mod_export{
 	}
 
 	protected function file_info_copy_to_pathname($fi, $temp, $recursive = true){
+		global $CFG;
 		if(empty($fi)){
 			return ;
 		}
 		if(!$fi->is_directory()){
-			/*$path = "$temp/{$fi->get_visible_name()}";
-			if(!has_extention($path)){
-				$ext = mimetype_to_ext($fi->get_mimetype());
-				$path .= empty($ext) ? '' : ".$ext";
-			}*/
 			$params = $fi->get_params();
 			$filepath = $params['filepath'];
 			$path = $temp.$filepath;
 			if (!file_exists($path)){
-				global $CFG;
 				mkdir($path, $CFG->directorypermissions, true);
 			}
 			$ext = mimetype_to_ext($fi->get_mimetype());
 			$ext = empty($ext) ? get_extention($params['filename']) : $ext;
+			$ext = empty($ext) ? 'tmp' : $ext;
 			$ext = empty($ext) ? '' : '.' . $ext;
 			$path .= '/'. trim_extention($this->safe_name($fi->get_visible_name())) .$ext;
 			$fi->copy_to_pathname($path);
@@ -108,20 +104,20 @@ class mod_export{
 		return $result;
 	}
 
-    protected function get_main_css(){
-    	$result = '<style type="text/css">';
-    	$result .= file_get_contents(dirname(__FILE__).'/../resource/main.css');
-    	$result .= '';
-    	$result .= '</style>';
-    	return $result;
-    }
-    
-/*
-	protected function get_module($cid, $mid){
+	protected function get_main_css(){
+		$result = '<style type="text/css">';
+		$result .= file_get_contents(dirname(__FILE__).'/../resource/main.css');
+		$result .= '';
+		$result .= '</style>';
+		return $result;
+	}
+
+	/*
+	 protected function get_module($cid, $mid){
 		global $DB;
 		$cm = get_coursemodule_from_id('quiz', $mid, $cid, false, MUST_EXIST);
 		return $DB->get_record('quiz', array('id'=>$cm->instance), '*', MUST_EXIST);
-	}*/
+		}*/
 
 }
 

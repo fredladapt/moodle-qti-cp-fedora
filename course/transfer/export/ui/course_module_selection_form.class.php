@@ -17,6 +17,7 @@ class course_module_selection_form{
 				}
 				$result .=  $OUTPUT->box_start();
 				$result .= '<div style="padding-left:15px;" class="section clearfix" >';
+
 				$ids = explode(',', $section->sequence);
 				foreach($ids as $id){
 					if(isset($modules[$id])){
@@ -28,12 +29,10 @@ class course_module_selection_form{
 							}
 							$img_href = empty($icon) ? '' : $OUTPUT->pix_url($icon);
 							$img_href = empty($img_href) ? $CFG->wwwroot . '/mod/' .$module->name . '/pix/icon.gif' : $img_href;
-							$img = '<img src="'.$img_href.'"/> ';
+							$img = '<img src="'.$img_href.'"> </img>';
 
 							$module_href = $CFG->wwwroot . "/mod/$module->name/view.php?id=$cm->id";
-							$module_a = '<a href="'.$module_href.'">'.$cm->name.'<a/> ';
-							//$icon = mimeinfo_from_type('icon', $file->get_mimetype());
-							//$img_href = $CFG->wwwroot . '/mod/' .$module->name . '/pix/icon.gif';
+							$module_a = '<a href="'.$module_href.'">'.$cm->name.'</a> ';
 							$name = "export_$id";
 							if($export->accept($module)){
 								$checked = isset($_POST[$name]) && !empty($_POST[$name]);
@@ -44,8 +43,8 @@ class course_module_selection_form{
 						}
 					}
 				}
-				$result .= '</div>';
 
+				$result .= '</div>';
 				$result .=  $OUTPUT->box_end();
 			}
 		}

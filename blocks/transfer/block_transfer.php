@@ -100,7 +100,7 @@ class block_transfer extends block_list {
 			return $this->content;
 		}
 		if(!$this->accept()){
-			$result = new object();
+			$result = new stdClass();
 			$result->items = array();
 			$result->footer = '';
 			return $this->content = $result;
@@ -116,7 +116,7 @@ class block_transfer extends block_list {
 		$export_href = "{$CFG->wwwroot}/course/transfer/export/index.php?$params";
 		$import_href = "{$CFG->wwwroot}/course/transfer/import/index.php?$params";
 
-		$result = new object();
+		$result = new stdClass();
 		$result->footer = '';
 		$result->items[] = '<a href="'.$export_href.'">'. get_string('export', __CLASS__) .'</a>';
 		$result->icons[] = '';//<img src="images/icons/1.gif" class="icon" alt="" />';

@@ -97,6 +97,7 @@ class course_export {
 			global $USER;
 			$file_name = 'f'. md5($USER->id . time());
 			$ext = pathinfo($current_path, PATHINFO_EXTENSION);
+			$ext = empty($ext) ? 'tmp' : $ext;
 			$ext = empty($ext) ? '': ".$ext";
 			$path = dirname($temp) . '/' . $file_name . $ext;
 
