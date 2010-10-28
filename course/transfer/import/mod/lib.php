@@ -79,19 +79,18 @@ class mod_import{
 	 */
 	public function get_file_filearea(){
 		return 'content';
-	} 
-	
+	}
+
 	/**
 	 * The default item id used to store files.
 	 */
 	public function get_file_itemid(){
 		return 0;
 	}
-	
+
 	public function accept($settings){
 		$path = $settings->get_path();
 		$file_ext = $settings->get_extention();
-		//debug($file_ext);
 		$extentions = $this->get_extentions();
 		foreach($extentions as $ext){
 			if($ext == $file_ext){
@@ -194,9 +193,7 @@ class mod_import{
 			}
 			return $instance;
 		}catch(Exception $e){
-			debug($e);
 			return false;
-			//$DB->rollback_delegated_transaction($transaction, $e);
 		}
 	}
 

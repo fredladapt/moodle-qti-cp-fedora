@@ -30,7 +30,6 @@ class question_import extends mod_import{
 			$question = $importer->import($path, $filename, $course);
 			$question = is_array($question) ? reset($question) : $question;
 		}catch(Exception $e){
-			debug($e);
 			$question = false;
 		}
 		if($question){

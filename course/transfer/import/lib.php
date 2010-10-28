@@ -3,7 +3,7 @@
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir.'/mime/mime_type.php');
 require_once($CFG->libdir.'/portfolio/caller.php');
-require_once($CFG->libdir.'/debug_util.class.php');
+include_once($CFG->libdir.'/debug_util.class.php');
 require_once($CFG->dirroot.'/mod/resource/locallib.php');
 require_once($CFG->dirroot.'/portfolio/fedora/lib.php');
 require_once($CFG->libdir.'/formslib.php');

@@ -1,7 +1,7 @@
 <?php
 
 require_once($CFG->libdir.'/fedora/lib.php');
-require_once($CFG->libdir.'/debug_util.class.php');
+include_once($CFG->libdir.'/debug_util.class.php');
 require_once($CFG->libdir.'/mime/mime_type.php');
 
 /**
@@ -154,29 +154,6 @@ class repository_fedora extends repository {
 	public function get_link($url) {
 		return $url;
 	}
-/*
-	protected function get_object_datastream($pid){
-		$fedora = $this->get_fedora();
-		$ds = $fedora->get_object($pid);
-
-		echo $pid . "\n".'  ';
-		debug($ds) . '  ';
-		die;
-
-		if(!empty($ds)){
-			return $ds;
-		}
-
-		$list = $fedora->list_datastreams($pid);
-		foreach($list as $item){
-			$dsid = strtolower($item['dsid']);
-			if(	$dsid != strtolower(FedoraProxy::DUBLIN_CORE_DS_NAME) &&
-			$dsid != strtolower(FedoraProxy::LOM_DS_NAME)){
-				return $item;
-			}
-		}
-		return false;
-	}*/
 
 	public function get_file($source, $filename) {
 		if($start = strpos($source,'objects/')){

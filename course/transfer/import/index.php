@@ -39,25 +39,17 @@ if(!empty($_POST) && $form->is_validated()) {
 		$filename = trim_extention($filename);
 		$filename .= '.' .$ext;
 	}
-	
+
 	$section = $form->get_data()->section;
 
 	echo $OUTPUT->heading(get_string('import_result', 'block_transfer'), 2, 'heading_block header outline');
 	echo $OUTPUT->box_start();
 	$importer = new course_import(new transfer_log());
 
-	DebugUtil2::set_default_error_handler();
-
 	$importer->import(new import_settings($course_id, $path, $filename, $ext, $section));
 	echo $OUTPUT->box_end();
 }
 
-/*
- *
- echo '<div style="height:350px; z-order:"250>';
- echo '<script type="text/javascript"  src="https://collection.switch.ch/lorem.js?startURL=https://collection.switch.ch/disciplines/4761"> </script>';
- echo '</div>';
- */
 
 echo $OUTPUT->footer();die;
 

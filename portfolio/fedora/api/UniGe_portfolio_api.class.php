@@ -220,7 +220,6 @@ class UniGe_portfolio_api extends api_base{
 			}
 
 			$result .= '</ul>';
-			//debug(htmlentities($result));
 			return $result;
 		}catch(Exception $e){
 			return '';
@@ -309,7 +308,6 @@ class UniGe_portfolio_api extends api_base{
 			}
 
 			$result .= '</ul>';
-			//debug(htmlentities($result));
 			return $result;
 		}catch(Exception $e){
 			return '';
@@ -458,8 +456,6 @@ class UniGe_portfolio_api extends api_base{
 		$query .= "?pid <fedora-model:ownerId> '$owner' . " ;
 		$query .= 'OPTIONAL {?pid <fedora-rels-ext:isCollection> ?col} FILTER( !BOUND(?col) || !?col) ';
 		$query .= '} ORDER BY DESC(?lastModifiedDate) LIMIT 50 ';
-
-		//debug(htmlentities($query));die;
 
 		$fedora = $this->get_fedora();
 		$items = $fedora->ri_search($query, '', 'tuples', 'Sparql', 'Sparql');

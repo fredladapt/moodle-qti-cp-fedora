@@ -16,7 +16,7 @@ error_reporting(-1);
 
 require_once(dirname(__FILE__). '/../../config.php');
 require_once($CFG->dirroot . '/lib/filelib.php');
-require_once($CFG->dirroot.'/lib/debug_util.class.php');
+include_once($CFG->dirroot.'/lib/debug_util.class.php');
 
 require_login();
 

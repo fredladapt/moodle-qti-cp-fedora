@@ -3,7 +3,7 @@ require_once($CFG->libdir.'/portfolio/plugin.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/flickrlib.php');
 require_once($CFG->libdir.'/fedora/lib.php');
-require_once($CFG->libdir.'/debug_util.class.php');
+include_once($CFG->libdir.'/debug_util.class.php');
 require_once(dirname(__FILE__) . '/api_base.class.php');
 require_once dirname(__FILE__) . '/api/fedora_default_portfolio_api.class.php';
 require_once dirname(__FILE__) . '/api/SWITCH_portfolio_api.class.php';

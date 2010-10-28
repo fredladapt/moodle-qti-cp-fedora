@@ -181,14 +181,13 @@ class rdi_repository_api{
 
 			$list = array();
 			foreach($objects as $object){
-				//debug($object);
 				$title = $object['label'];
 				if(!empty($title)){
 					$pid = $object['pid'];
 					$list[] = array(
-		        		'title'=>$title, 
-		        		'date'=>$object['lastmodifieddate'], 
-		        		'size'=>'0', 
+		        		'title'=>$title,
+		        		'date'=>$object['lastmodifieddate'],
+		        		'size'=>'0',
 		        		'thumbnail' => $CFG->wwwroot . '/repository/fedora/resource/object.png',
 		        		'path' =>  '/' . $title . '^object?' . $pid . '^/',
 						'children' =>array(),
@@ -240,11 +239,11 @@ class rdi_repository_api{
 						$title = $object['label'];
 						if(!empty($title)){
 							$list[] = array(
-		        		'title'=>$title, 
-						'shorttitle' => $title, 
-		        		'date'=> 0, 
-		        		'size'=> 0,  
-		        		'source'=> "$base_url/objects/$pid/datastreams/$dsID/content",       
+		        		'title'=>$title,
+						'shorttitle' => $title,
+		        		'date'=> 0,
+		        		'size'=> 0,
+		        		'source'=> "$base_url/objects/$pid/datastreams/$dsID/content",
 		        		'thumbnail' => $CFG->wwwroot . '/repository/fedora/resource/datastream.png',
 							);
 						}
@@ -291,9 +290,9 @@ class rdi_repository_api{
 		global $CFG;
 		if(!empty($title)){
 			$result = array(
-		        		'title'=>$title, 
-		        		'date'=>$date, 
-		        		'size'=>'0', 
+		        		'title'=>$title,
+		        		'date'=>$date,
+		        		'size'=>'0',
 		        		'thumbnail' => $CFG->wwwroot . '/repository/fedora/resource/object.png',
 		        		'path' =>  '/' . $title . '^object?' . $pid . '^/',
 						'children' =>array(),
