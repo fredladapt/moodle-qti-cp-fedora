@@ -2,28 +2,24 @@
 
 /**
  * Question builder for CALCULATEDSIMPLE questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class CalculatedSimpleBuilder extends CalculatedBuilder{
-	
-	static function factory(ImsQtiReader $item, $source_root, $target_root){
+
+	static function factory(ImsQtiReader $item, $source_root, $target_root, $category){
 		$accept = defined('CALCULATEDSIMPLE' || !self::has_score($item)) &&
 				  !is_null(CalculatedBuilder::factory($item, $source_root, $target_root)) &&
-				  $item->toolName == Qti::get_tool_name() &&
+				  $item->toolName == self::get_tool_name() &&
 				  $item->toolVersion >= Qti::get_tool_version() &&
 				  $item->label == CALCULATEDSIMPLE;
 		if($accept){
-			return new self($source_root, $target_root);
+			return new self($source_root, $target_root, $category);
 		}else{
 			return null;
-		}	  
-	}
-	
-	public function __construct($source_root, $target_root){
-		parent::__construct($source_root, $target_root);
+		}
 	}
 
 	public function create_question(){
@@ -31,7 +27,7 @@ class CalculatedSimpleBuilder extends CalculatedBuilder{
         $result->qtype = CALCULATEDSIMPLE;
         return $result;
 	}
-		
+
 
 
 }

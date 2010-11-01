@@ -45,9 +45,9 @@ class QtiImport{
 		$this->stoponerror = $stoponerror;
 
 		try{
-			return $this->execute_import($filename, $realfilename, $course, $category, $stoponerror);
+			$result = $this->execute_import($filename, $realfilename, $course, $category, $stoponerror);
+			return $result;
 		}catch(Exception $e){
-			//throw $e;
 			$this->notify('error', '', $e->getMessage());
 			return false;
 		}
@@ -232,7 +232,8 @@ class QtiImport{
 
 	protected function get_base_url(){
 		$file = $this->get_base_file();
-		$result = "/moodle/file.php/{$this->course->id}/$file/";
+		//$result = "/moodle/file.php/{$this->course->id}/$file/";
+		$result = '@@PLUGINFILE@@/';
 		return $result;
 	}
 
@@ -251,8 +252,12 @@ class QtiImport{
 		return "{$CFG->dataroot}/{$this->course->id}/$file/";
 	}
 
+	protected function get_category(){
+		return $this->category;
+	}
+
 	protected function create_builder($item){
-		return QuestionBuilder::factory($item, $this->get_base_temp(), $this->get_base_url());
+		return QuestionBuilder::factory($item, $this->get_base_temp(), $this->get_base_url(), $this->get_category());
 	}
 
 	protected function save_resources(){
@@ -270,23 +275,26 @@ class QtiImport{
 			$filepath = dirname($path);
 			$filepath = str_replace($this->get_base_temp(), '', $filepath);
 			$filepath = '/'. $this->get_base_file() .'/'. trim($filepath, '/') .'/' ;
-			$filearea = 'course_content';
+			$filearea = 'questiontext';
 			$filename = basename($path);
 			$itemid = 0;
 
 			$fs = get_file_storage();
-			if($fs->file_exists($contextid, $filearea, $itemid, $filepath, $filename)){
-				$fs->delete_area_files($contextid, $filearea, $itemid);
+			if($fs->file_exists($contextid, 'question', 'questiontext', $itemid, $filepath, $filename)){
+				$fs->delete_area_files($contextid, 'question', $filearea, $itemid);
 				$fs->cron();
 			}
 
-			$file_record = array('contextid'=>$contextid, 'filearea'=>$filearea, 'itemid'=>$itemid,
-	    						'filepath'=>$filepath, 'filename'=>$filename,
-	    						'timecreated'=>time(), 'timemodified'=>time());
+			$file_record = array(	'contextid'=>$contextid, 'component' => 'question',
+								 	'filearea'=>'questiontext', 'itemid'=>$itemid,
+	    							'filepath'=>$filepath, 'filename'=>$filename,
+	    							'timecreated'=>time(), 'timemodified'=>time());
 			$fs->create_file_from_pathname($file_record, $from_path);
 		}catch(Exception $e){
-			debug($e->getMessage());
-			$this->notify_lang('cannotimportfile', '', basename($path));
+			debug($path);
+			debug($e);
+			die;
+			$this->notify_lang('cannotimportfile');
 		}
 	}
 

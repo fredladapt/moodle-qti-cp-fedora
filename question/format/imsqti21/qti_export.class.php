@@ -138,6 +138,11 @@ class QtiExport{
 
 		try{
 			$result = $DB->get_records_sql($sql);
+			if(is_array($result)){
+				foreach($result as $question){
+					$question->export_process = true;//needed to export datasets
+				}
+			}
 			get_question_options($result, true);
 		}catch(Exception $e){
 			debug($e);
@@ -154,8 +159,25 @@ class QtiExport{
 		foreach($ressources as $target => $url){
 			$path = $directory.$target;
 			FileUtil::ensure_directory($path);
-			MoodleUtil::copy_to_file($url, $path);
+
+			$url = explode('/', $url);
+			$question_id = reset($url);
+			$category_id = $url[1];
+			$filename = end($url);
+			$context = $this->get_context_by_category_id($category_id);
+
+			$fs = get_file_storage();
+			if($file = $fs->get_file($context->id, 'question', 'questiontext', $question_id, '/', $filename)){
+				$file->copy_content_to($path);
+			}
 		}
+	}
+
+	function get_context_by_category_id($category) {
+		global $DB;
+		$contextid = $DB->get_field('question_categories', 'contextid', array('id'=>$category));
+		$context = get_context_instance_by_id($contextid);
+		return $context;
 	}
 
 	protected function create_serializer($question){
@@ -179,14 +201,14 @@ class QtiExport{
 	}
 
 	protected function add_manifest_question($question){
-		
+
 		$type = 'imsqti_item_xmlv2p0';
 		$id = $this->get_question_name($question);
 		$href = $this->get_question_filename($question);
 		$result = $this->manifest_resources->add_resource($type, $href, $id);
 		$this->add_question_metadata($result, $question);
 		$result->add_file($href);
-		
+
 		$this->manifest_organization->add_item($id)->add_title($question->name);
 		return $result;
 	}
@@ -200,7 +222,7 @@ class QtiExport{
 		//$this->add_question_metadata($result, $question);
 		$result->add_file($href);
 		$this->manifest_organization->add_item($id)->add_title($quiz->name);
-		
+
 		return $result;
 	}
 

@@ -2,31 +2,27 @@
 
 /**
  * Question builder for MATCH questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class MatchingBuilder extends QuestionBuilder{
-	
-	static function factory($item, $source_root, $target_root){
+
+	static function factory($item, $source_root, $target_root, $category){
 		if(!defined('MATCH') || !self::has_score($item)){
 			return null;
 		}else{
 			$count = count($item->list_interactions());
 			$main = self::get_main_interaction($item);
 			if($count == 1 && $main->is_associateInteraction() || $main->is_matchInteraction()){
-				return new self($source_root, $target_root);
+				return new self($source_root, $target_root, $category);
 			}else{
 				return null;
 			}
 		}
 	}
-	
-	public function __construct($source_root, $target_root){
-		parent::__construct($source_root, $target_root);
-	}
-	
+
 	public function create_question(){
 		$result = parent::create_question();
         $result->qtype = MATCH;
@@ -35,19 +31,19 @@ class MatchingBuilder extends QuestionBuilder{
 		$result->generalfeedback = '';
         return $result;
 	}
-	
+
 	public function get_choices(ImsQtiReader $reader){
 		$result = array();
     	$choices = $reader->query('.//def:simpleAssociableChoice');
     	foreach($choices as $choice){
     		$id = $choice->identifier;
-    		$text = $this->to_text($choice); 
+    		$text = $this->to_text($choice);
     		$max = $choice->matchMax; // not handled by moodle
     		$result[$id] = $this->create_choice($id, $text, $max);
     	}
 		return $result;
 	}
-	
+
 	public function create_choice($id='', $text='', $max=''){
     	$result = new stdClass();
     	$result->id = $id;
@@ -55,11 +51,11 @@ class MatchingBuilder extends QuestionBuilder{
     	$result->text = $text;
     	return $result;
 	}
-	
+
 	public function empty_choice(){
 		return $this->create_choice();
 	}
-	
+
 	public function create_entry($question=null, $answer){
 		if(empty($question)){
 			$question = $this->empty_choice();
@@ -72,7 +68,7 @@ class MatchingBuilder extends QuestionBuilder{
 		$result->answer = $answer;
     	return $result;
 	}
-	
+
 	public function get_entries(ImsQtiReader $item, ImsQtiReader $interaction){
 		$result = array();
 		$sets = $interaction->list_simpleMatchSet();
@@ -102,34 +98,35 @@ class MatchingBuilder extends QuestionBuilder{
 				$result[] = $this->create_entry(null, $answer);
 			}
 		}
-		
+
 		return $result;
 	}
-	
+
 	public function is_directed($item, $interaction){
 		$response = $this->get_response($item, $interaction);
 		return strtolower($response->baseType) == strtolower('directedPair');
 	}
-	
+
 	public function build(ImsXmlReader $item){
 		$result = $this->create_question();
         $result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
         $result->penalty = $this->get_penalty($item);
+
         $general_feedbacks = $this->get_general_feedbacks($item);
         $result->generalfeedback = implode('<br/>', $general_feedbacks);
-		
+
 		$interaction = self::get_main_interaction($item);
-		
+
     	//$interaction->maxAssociations not handled by moodle
     	$result->shuffleanswers = $interaction->shuffle == 'true' || $interaction->shuffle == '';
-    	
+
     	$max = $this->get_maximum_score($item, $interaction);
     	$result->defaultgrade = $max;
-		
+
     	$entries = $this->get_entries($item, $interaction);
     	foreach($entries as $entry){
-    		$result->subquestions[]  = $entry->question->text;
+    		$result->subquestions[]  = $this->format_text($entry->question->text);
     		$result->subanswers[] = $entry->answer->text;
     	}
 		return $result;

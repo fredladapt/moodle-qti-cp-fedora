@@ -1,26 +1,36 @@
 <?php
 
 /**
- * 
- * 
- * @copyright (c) 2010 University of Geneva 
+ *
+ *
+ * @copyright (c) 2010 University of Geneva
  * @license GNU General Public License - http://www.gnu.org/copyleft/gpl.html
  * @author laurent.opprecht@unige.ch
  *
  */
 class SerializerBase{
-	
+
 	const FORMAT_MOODLE_AUTO_FORMAT = 0;
 	const FORMAT_HTML = 1;
 	const FORMAT_PLAIN_TEXT = 2;
 	const FORMAT_WIKI_LIKE = 3;
 	const FORMAT_MARKDOWN = 4;
-	
+
 	const GENERAL_FEEDBACK = 'GENERAL_FEEDBACK';
 	const PENALTY = 'PENALTY';
-	
+
+	/**
+	 * Returns the tool name used to generate qti files.
+	 * Mostly used to identify if a file is a reimport.
+	 *
+	 */
+	public static function get_tool_name(){
+		return Qti::get_tool_name('moodle');
+	}
+
+
 	private $resource_manager;
-	
+
 	public function __construct($item='resources'){
 		if(is_string($item)){
 			$this->resource_manager = new QtiExportResourceManager($item);
@@ -28,18 +38,18 @@ class SerializerBase{
 			$this->resource_manager = $item;
 		}
 	}
-	
+
 	public function get_resource_manager(){
 		return $this->resource_manager;
 	}
-	
+
 	public function get_resources(){
 		$result = $this->resource_manager->get_resources();
 		return $result;
 	}
-	
+
 	//TRANSLATE TEXT
-	
+
 	protected function translate_text($text, $text_format=self::FORMAT_HTML, $question=null){
 		if(empty($text)){
 			return $text;
@@ -50,9 +60,9 @@ class SerializerBase{
 		}else if($text_format ==  self::FORMAT_HTML){
 			$doc = new DOMDocument();
 			$doc->loadHTML('<?xml encoding="UTF-8">' . $text);
-	    	$this->translate_nodes($doc->childNodes);
+	    	$this->translate_nodes($doc->childNodes, $question);
 	    	$body = $doc->getElementsByTagName('body')->item(0);
-	    	
+
 	    	$result = $doc->saveXML($body);
 	    	$result = str_replace('<body>', '', $result);
 	    	$result = str_replace('</body>', '', $result);
@@ -61,49 +71,50 @@ class SerializerBase{
 			return '';
 		}
 	}
-	
-	private function translate_node($node){
+
+	private function translate_node($node, $question){
 		$name = isset($node->nodeName) ? $node->nodeName : '';
     	if($name == 'img'){
-    		$this->rewrite_path($node, 'src');
+    		$this->rewrite_path($node, 'src', $question);
     	}else if($name == 'object'){
-    		$this->rewrite_path($node, 'data');
+    		$this->rewrite_path($node, 'data', $question);
     	}
-	
-    	$this->translate_nodes($node->childNodes);
+
+    	$this->translate_nodes($node->childNodes, $question);
 	}
-	
-	private function translate_nodes($nodes){
+
+	private function translate_nodes($nodes, $question){
 		if(empty($nodes)){
 			return;
 		}
     	for($i = 0, $length = $nodes->length; $i<$length; $i++){
     		$node = $nodes->item($i);
-    		$this->translate_node($node);
+    		$this->translate_node($node, $question);
     	}
 	}
 
-    private function rewrite_path($node, $attribute){
+    private function rewrite_path($node, $attribute, $question){
     	if(!$node->hasAttribute($attribute)) return;
-    	
+
     	$path = $node->getAttribute($attribute);
+    	$path = str_replace('@@PLUGINFILE@@', $question->id . '/'. $question->category, $path);
     	$path = $this->resource_manager->translate_path($path);
     	$node->setAttribute($attribute, $path);
     }
-	
-	
+
+
 }
 
 /**
  * Base class for questions serializers and subquestion serializers.
  * subquestion serializers are used by the MULTIANSWER question's type.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class QuestionSerializerBase extends SerializerBase{
-		
+
 	/*
 	static function accept_file($path){
 		if(!is_file($path)){
@@ -113,7 +124,7 @@ class QuestionSerializerBase extends SerializerBase{
 		$result = $ext == 'php' && basename($path) != basename(__FILE__);
 		return $result;
 	}
-	
+
 	static function class_name($path){
 		$ext = pathinfo($path, PATHINFO_EXTENSION);
 		$name = basename($path, $ext);
@@ -128,7 +139,7 @@ class QuestionSerializerBase extends SerializerBase{
 		return $result;
 	}
 */
-	
+
 
 	protected function has_answer_feedback($question){
 		if(!isset($question->options) || !isset($question->options->answers) || !is_array($question->options->answers)){
@@ -141,13 +152,13 @@ class QuestionSerializerBase extends SerializerBase{
 		}
 		return false;
 	}
-	
+
 }
 
 /**
  * Base clase for sub questions embedded in a multi-answer/cloze parent question.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
@@ -156,7 +167,7 @@ class SubquestionSerializer extends QuestionSerializerBase{
 	public function __construct($resource_manager){
 		parent::__construct($resource_manager);
 	}
-	
+
 	public function add_feedback_declaration(ImsQtiWriter $item, $question){
 		if($this->has_answer_feedback($question)){
 		    $id = $this->feedback_id($question);
@@ -167,7 +178,7 @@ class SubquestionSerializer extends QuestionSerializerBase{
 			return null;
 		}
 	}
-	
+
 	public function add_feedback(ImsQtiWriter $item, $question){
 		return null;
 	}
@@ -180,7 +191,7 @@ class SubquestionSerializer extends QuestionSerializerBase{
 		$cardinality = ImsQtiWriter::CARDINALITY_SINGLE;
 		$identity = $this->response_id($question);
 		$result = $item->add_responseDeclaration($identity, $cardinality, ImsQtiWriter::BASETYPE_STRING);
-		
+
 		return $result;
 	}
 
@@ -197,7 +208,7 @@ class SubquestionSerializer extends QuestionSerializerBase{
 	public function add_score_processing(ImsQtiWriter $response_processing, $question){
 		return null;
 	}
-	
+
 	public function add_interaction(ImsQtiWriter $item, $question){
 		return null;
 	}
@@ -205,11 +216,11 @@ class SubquestionSerializer extends QuestionSerializerBase{
 	public function score_id($question){
 		return ImsQtiWriter::SCORE . '_' .$question->id;
 	}
-	
+
 	public function response_id($question){
 		return ImsQtiWriter::RESPONSE . '_' .$question->id;
 	}
-	
+
 	public function feedback_id($question){
 	    return ImsQtiWriter::FEEDBACK . '_'. $question->id;
 	}
@@ -223,8 +234,8 @@ class SubquestionSerializer extends QuestionSerializerBase{
 /**
  * Empty object pattern for subquestion serializers.
  * Do nothing.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
@@ -232,11 +243,11 @@ class SubquestionSerializerEmpty{
 
 	public function __construct(){
 	}
-	
+
 	public function add_feedback_declaration(ImsQtiWriter $item, $question){
 		return null;
 	}
-	
+
 	public function add_feedback(ImsQtiWriter $item, $question){
 		return null;
 	}
@@ -260,15 +271,15 @@ class SubquestionSerializerEmpty{
 	public function add_interaction(ImsQtiWriter $item, $question){
 		return null;
 	}
-	
+
 	public function score_id($question){
 		return '';
 	}
-	
+
 	public function response_id($question){
 		return '';
 	}
-	
+
 	public function feedback_id($question){
 	    return '';
 	}

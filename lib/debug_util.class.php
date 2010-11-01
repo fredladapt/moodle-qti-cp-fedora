@@ -197,14 +197,6 @@ if(!class_exists('DebugUtil2')){
 		}
 
 		public static function set_default_error_handler(){
-			$filter = '#C:\wamp\www\chamilo\repository\lib\content_object.class.php.*#';
-			$filter = str_replace('\\', '\\\\', $filter);
-			self::$filters[] = $filter;
-
-			$filter = '#C:\wamp\www\chamilo\common\.*#';
-			$filter = str_replace('\\', '\\\\', $filter);
-			self::$filters[] = $filter;
-
 			$flag = (E_ALL) & ~(E_DEPRECATED);
 			$result = set_error_handler(array(__CLASS__, 'default_error_handler'), $flag);
 			$result = set_exception_handler(array(__CLASS__, 'default_exception_handler'));

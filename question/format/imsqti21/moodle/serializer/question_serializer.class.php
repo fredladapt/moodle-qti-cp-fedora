@@ -4,21 +4,21 @@
 
 /**
  * Base class for primary question serializers. I.e. serializers for moodle's questions' types
- *  
+ *
  * The parent QuestionSerializerBase class is used by subquestions serializers as well.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class QuestionSerializer extends QuestionSerializerBase{
-	
+
 	static function question_identifier($question){
 		$catalog_name = MoodleUtil::get_catalog_name();
 		$result = "$catalog_name:Q_". str_pad($question->id, 8, '0', STR_PAD_LEFT);
 		return $result;
 	}
-	
+
 	/**
 	 * @return QuestionSerializer
 	 */
@@ -34,11 +34,11 @@ class QuestionSerializer extends QuestionSerializerBase{
 				$class = self::class_name($path);
 				if($result = $class::factory($question, $source_root, $target_root)){
 					return $result;
-				}				
+				}
 			}
 		}
 		*/
-		
+
 		if($result = EssaySerializer::factory($question, $target_root)){
 			return $result;
 		}else if($result = DescriptionSerializer::factory($question, $target_root)){
@@ -65,7 +65,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 			return null;
 		}
 	}
-	
+
 	/**
 	 * @return SubquestionSerializer
 	 */
@@ -116,29 +116,29 @@ class QuestionSerializer extends QuestionSerializerBase{
 		}
 		return new SubquestionSerializerEmpty();
 	}
-	
+
 	protected $question = null;
 	protected $assessment = null;
 	protected $response = null;
 	protected $score = null;
 	protected $response_processing = null;
-	protected $body = null; 
+	protected $body = null;
 	protected $interaction = null;
-	
+
 	public function __construct($target_root){
 		parent::__construct($target_root);
 	}
-	
+
 	protected function init($question){
 		$this->question = $question;
 		$this->assessment = null;
 		$this->response = null;
 		$this->score = null;
 		$this->response_processing = null;
-		$this->body = null; 
+		$this->body = null;
 		$this->interaction = null;
 	}
-	
+
 	public function serialize($question){
 		$this->init($question);
 		$writer = new ImsQtiWriter();
@@ -153,32 +153,32 @@ class QuestionSerializer extends QuestionSerializerBase{
 		$this->add_modal_feedback($item, $question);
 		return $writer->saveXML();
 	}
-	
+
 	protected function add_assessment_item(ImsQtiWriter $writer, $question){
 		$identifier = self::question_identifier($question);
 		$lang = MoodleUtil::get_current_language();
 		$label = $question->qtype;
-		$toolname = Qti::get_tool_name();
+		$toolname = self::get_tool_name();
 		$toolversion = Qti::get_tool_version();
 		$result = $writer->add_assessmentItem($identifier, $question->name, true, false, $label, $lang, $toolname, $toolversion);
 		return $result;
 	}
-		
+
 	protected function add_stylesheet(ImsQtiWriter $item, $question){
 		 return null;
 	}
-	
+
 	protected function add_response_declaration(ImsQtiWriter $item, $question){
 		return $this->response = $item->add_responseDeclaration(ImsQtiWriter::RESPONSE, ImsQtiWriter::CARDINALITY_SINGLE, ImsQtiWriter::BASETYPE_IDENTIFIER);
 	}
-	
+
 	protected function add_outcome_declaration(ImsQtiWriter $item, $question){
 		$this->score = $this->add_score_declaration($item, $question);
 		$this->add_penalty_declaration($item, $question);
 		$this->add_general_feedback_declaration($item, $question);
 		$this->add_answer_feedback_declaration($item, $question);
-	}	
-	
+	}
+
 	//TEMPLATE
 
 	protected function add_template_processing(ImsQtiWriter $item, $question){
@@ -188,9 +188,9 @@ class QuestionSerializer extends QuestionSerializerBase{
 	protected function add_template_declaration(ImsQtiWriter $item, $question){
 		return null;
 	}
-	
-	//BODY 
-	
+
+	//BODY
+
 	protected function add_body(ImsQtiWriter $item, $question){
 		$result = $item->add_itemBody();
 		$text = $this->translate_text($question->questiontext, $question->questiontextformat, $question);
@@ -198,18 +198,18 @@ class QuestionSerializer extends QuestionSerializerBase{
 		$this->interaction = $this->add_interaction($result, $question);
 		return $result;
 	}
-	
+
 	protected function add_interaction(ImsQtiWriter $body, $question){
 		return null;
 	}
 
 	//FEEDBACK
-	
+
 	protected function add_modal_feedback(ImsQtiWriter $item, $question){
 		$this->add_general_feedback($item, $question);
 		$this->add_answer_feedback($item, $question);
 	}
-	
+
 	protected function add_general_feedback_declaration(ImsQtiWriter $item, $question){
 		if($has_feedback = !empty($question->generalfeedback)){
 			$id = self::GENERAL_FEEDBACK;
@@ -232,7 +232,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 			return null;
 		}
 	}
-	
+
 	protected function add_answer_feedback_declaration(ImsQtiWriter $item, $question){
 		if($this->has_answer_feedback($question)){
 			$result = $item->add_outcomeDeclaration_feedback();
@@ -242,7 +242,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 			return null;
 		}
 	}
-	
+
 	protected function add_answer_feedback(ImsQtiWriter $item, $question){
 		return null;
 	}
@@ -267,9 +267,9 @@ class QuestionSerializer extends QuestionSerializerBase{
 		}
 		return false;
 	}
-	
-	// SCORE 
-	
+
+	// SCORE
+
 	protected function add_score_declaration(ImsQtiWriter $item, $question){
 		$score = $question->defaultgrade;
 		$cardinality = ImsQtiWriter::CARDINALITY_SINGLE;
@@ -281,29 +281,29 @@ class QuestionSerializer extends QuestionSerializerBase{
 	}
 
 	protected function add_score_processing($response_processing, $question){
-		return null;	
+		return null;
 	}
-	
+
 	// PENALTY
-	
+
 	protected function has_penalty($question){
 		return !empty($question->penalty);
 	}
-	
+
 	protected function add_penalty_declaration(ImsQtiWriter $item, $question){
 		if(!$this->has_penalty($question)){
 			return null;
 		}
-		
+
 		$cardinality = ImsQtiWriter::CARDINALITY_SINGLE;
 		$name = self::PENALTY;
 		$base_type = ImsQtiWriter::BASETYPE_FLOAT ;
 		$score_outcome = $item->add_outcomeDeclaration($name, $cardinality, $base_type);
 		$score_outcome->add_defaultValue()->add_value(0);
-		
+
 		return $score_outcome;
 	}
-	
+
 	protected function add_penalty_increase(ImsQtiWriter $processing, $question, $penalty_id = self::PENALTY){
 		if(!$this->has_penalty($question)){
 			return null;
@@ -318,26 +318,26 @@ class QuestionSerializer extends QuestionSerializerBase{
     	$sum->add_variable($penalty_id);
     	return $result;
 	}
-	
+
 	protected function add_add_penalty(ImsQtiWriter $processing, $question, $input_id = ImsQtiWriter::SCORE,  $score_id = ImsQtiWriter::SCORE, $penalty_id = self::PENALTY){
 		if(!$this->has_penalty($question)){
 			return null;
 		}
-		
+
 		$result = $processing->add_setOutcomeValue($score_id);
     	$sum = $result->add_subtract();
     	$sum->add_variable($input_id);
     	$sum->add_variable($penalty_id);
-    	
+
 		$result = $processing->add_responseCondition();
     	$if = $result->add_responseIf();
     	$lt = $if->add_lt();
     	$lt->add_variable($input_id);
-    	$lt->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);    	
+    	$lt->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
     	$if->add_setOutcomeValue($input_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
     	return $result;
 	}
-	
+
 	protected function add_response_processing(ImsQtiWriter $item, $question){
 		$result = $item->add_responseProcessing();
 		$this->add_score_processing($result, $question);
@@ -346,7 +346,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 		$this->add_answer_feedback_processing($result, $question);
 		return $result;
 	}
-	
+
 
 }
 

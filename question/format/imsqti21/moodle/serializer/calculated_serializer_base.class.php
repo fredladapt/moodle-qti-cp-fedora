@@ -4,13 +4,13 @@
 
 /**
  * Serializer base class for calculated questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class CalculatedSerializerBase extends NumericalSerializerBase{
-	
+
 	public function __construct($target_root){
 		parent::__construct($target_root);
 	}
@@ -20,23 +20,23 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 		$cardinality =  ImsQtiWriter::CARDINALITY_SINGLE;
 		$base_type = ImsQtiWriter::BASETYPE_FLOAT;
 		$result = $item->add_responseDeclaration(ImsQtiWriter::RESPONSE, $cardinality, $base_type);
-		
+
 		$this->add_unit_declaration($item, $question);
 		return $result;
 	}
-	
+
 	protected function add_template_declaration(ImsQtiWriter $item, $question){
 		$result = null;
 		$datasets = isset($question->options->datasets) ? $question->options->datasets : array();
 		foreach($datasets as $dataset){
 			$id = $dataset->name;
 			$cardinality = ImsQtiWriter::CARDINALITY_SINGLE;
-			$basetype = ImsQtiWriter::BASETYPE_FLOAT; 
+			$basetype = ImsQtiWriter::BASETYPE_FLOAT;
 			$result = $item->add_templateDeclaration($id, $cardinality, $basetype, false, false);
 		}
 		return $result;
 	}
-	
+
 	protected function add_template_processing(ImsQtiWriter $item, $question){
 		$result = $item->add_templateProcessing();
 		$datasets = isset($question->options->datasets) ? $question->options->datasets : array();
@@ -46,17 +46,17 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 				$id = $dataset->name;
 				$multiple = $result->add_setTemplateValue($id)->add_random()->add_multiple();
 				foreach($items as $item){
-					$basetype = ImsQtiWriter::BASETYPE_FLOAT; 
+					$basetype = ImsQtiWriter::BASETYPE_FLOAT;
 					$multiple->add_baseValue($basetype, $item->value);
 				}
 			}
 		}
 		return $result;
 	}
-		
+
 	protected function add_score_processing(ImsQtiWriter $response_processing, $question){
 		$this->add_unit_processing($response_processing, $question);
-		
+
 		$result = $response_processing->add_responseCondition();
 		$response_id = ImsQtiWriter::RESPONSE;
 		$outcome_id = ImsQtiWriter::SCORE;
@@ -72,8 +72,8 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 		    		$elseif = $result->add_responseElseIf();
 			    	$equal = $elseif->add_equal($tolerance_mode, $answer->tolerance, $answer->tolerance);
 			    	$equal->add_flow($formula);
-			    	$product = $equal->add_product(); 
-			    	$product->add_variable($response_id); 
+			    	$product = $equal->add_product();
+			    	$product->add_variable($response_id);
 			    	$product->add_variable(self::UNIT_MULTIPLIER);
 			    	$elseif->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, $score);
 				}else{
@@ -84,7 +84,7 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
     	$else->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
 		return $result;
 	}
-	
+
 	protected function add_answer_feedback_processing($response_processing, $question){
 		$result = $response_processing->add_responseCondition();
 		$response_id = ImsQtiWriter::RESPONSE;
@@ -102,19 +102,19 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 	    		$elseif = $result->add_responseElseIf();
 		    	$equal = $elseif->add_equal($tolerance_mode, $answer->tolerance, $answer->tolerance);
 			    $equal->add_flow($formula);
-			    $product = $equal->add_product(); 
-			    $product->add_variable($response_id); 
+			    $product = $equal->add_product();
+			    $product->add_variable($response_id);
 			    $product->add_variable(self::UNIT_MULTIPLIER);
-			    
+
 		    	$elseif->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_IDENTIFIER, $id);
     		}
 	 	}
 	 	$else = $result->add_responseElse();
     	$else->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_IDENTIFIER, 'FEEDBACK_ID_ELSE');
-	 
+
 		return $result;
 	}
-	
+
 	protected function add_interaction(ImsQtiWriter $body, $question){
 		if($question->options->unitsleft){
 			$this->add_unit($body, $question);
@@ -129,7 +129,7 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 		}
 		return $result;
 	}
-		
+
 	protected function translate_text($text, $text_format=self::FORMAT_HTML, $question){
 		$result = parent::translate_text($text, $text_format, $question);
 		$pattern = "/^\{[a-zA-Z_][a-zA-Z0-9_]*\}/";;
@@ -140,7 +140,7 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 			$result = str_replace($name, $replace, $result);
 		}
 		return $result;
-		
+
 	}
 }
 

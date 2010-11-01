@@ -3,9 +3,9 @@
 /**
  * Base class for all question builders. Builders are responsible to construct a moodle question object.
  * Relies on the import strategies to extract values from the QTI file and on the QTI renderer
- * to render the question's parts. 
- * 
- * University of Geneva 
+ * to render the question's parts.
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
@@ -23,70 +23,85 @@ class QuestionBuilder{
 			}
 		}
 		return true;
-	} 
-	
+	}
+
 	/**
 	 * @param ImsQtiReader $item
 	 * @return QuestionBuilder
 	 */
-	static function factory($item, $source_root, $target_root){
-		if($result = EssayBuilder::factory($item, $source_root, $target_root)){
+	public static function factory($item, $source_root, $target_root, $category){
+		if($result = EssayBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = TruefalseBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = TruefalseBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = MatchingBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = MatchingBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = NumericalBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = NumericalBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = DescriptionBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = DescriptionBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = CalculatedSimpleBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = CalculatedSimpleBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = CalculatedBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = CalculatedBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = CalculatedMultichoiceBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = CalculatedMultichoiceBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = MultichoiceBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = MultichoiceBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = ShortanswerBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = ShortanswerBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
-		}else if($result = ClozeBuilder::factory($item, $source_root, $target_root)){
+		}else if($result = ClozeBuilder::factory($item, $source_root, $target_root, $category)){
 			return $result;
 		}
 		return null;
 	}
 
 	/**
-	 * 
+	 * Returns the tool name used to generate qti files.
+	 * Mostly used to identify if a file is a reimport.
+	 *
+	 */
+	public static function get_tool_name(){
+		return Qti::get_tool_name('moodle');
+	}
+
+	/**
+	 *
 	 * @param ImsQtiReader $item
 	 * @return ImsQtiReader
 	 */
 	static function get_main_interaction($item){
 		return QtiImportStrategyBase::get_main_interaction($item);
 	}
-	
+
 	static function has_score($item){
 		return QtiImportStrategyBase::has_score($item);
 	}
-	
+
 	static function has_answers($item){
 		return QtiImportStrategyBase::has_answers($item);
 	}
-	
+
 	static function is_numeric_interaction($item, $interaction){
 		return QtiImportStrategyBase::is_numeric_interaction($item, $interaction);
 	}
 
 	/**
-	 * 
+	 *
 	 * @var QtiImportStrategy
 	 */
 	private $strategy = null;
+	private $category = '';
 
-	public function __construct($source_root, $target_root){
+	public function __construct($source_root, $target_root, $category){
 		$resource_manager = new QtiImportResourceManager($source_root, $target_root);
 		$renderer = new QtiPartialRenderer($resource_manager);
 		$this->strategy = QtiImportStrategyBase::create_moodle_default_strategy($renderer);
+		$this->category = $category;
+	}
+
+	public function get_category(){
+		return $this->category;
 	}
 
 	/**
@@ -95,7 +110,21 @@ class QuestionBuilder{
 	public function get_strategy(){
 		return $this->strategy;
 	}
-	
+
+	/**
+	 * Returns the storage context for the question
+	 *
+	 */
+	function get_context() {
+		if($category = $this->get_category()){
+			$contextid = $category->contextid;
+			$context = get_context_instance_by_id($contextid);
+			return $context;
+		}else{
+			return null;
+		}
+	}
+
 	/**
 	 * @return QtiResourceManager
 	 */
@@ -106,31 +135,34 @@ class QuestionBuilder{
 	public function get_resources(){
 		return $this->get_resource_manager()->get_resources();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param ImsQtiReader $item
 	 */
 	public function build($item){
 		return null;
 	}
-	
+
 	protected function create_question(){
         $default = new qformat_default();
         $result = $default->defaultquestion();
         $result->usecase = 0; // Ignore case
         $result->image = ''; // No image
         $result->questiontextformat = 1; //HTML
-        $result->answer = array(); 
+        $result->answer = array();
+        $result->context = $this->get_context();
+        $category = $this->get_category();
+        $result->category = $category ? $category->name : '';
         return $result;
 	}
-	
+
 	protected function get_feedback(ImsQtiReader $item, ImsQtiReader $interaction, $answer, $filter_out){
 		$result =  $this->get_feedbacks($item, $interaction, $answer, $filter_out);
 		$result =  implode('<br/>', $result);
 		return $result;
 	}
-	
+
 	protected function get_instruction(ImsQtiReader $item, $role = Qti::VIEW_ALL){
 		$result = $this->get_rubricBlock($item, $role);
 		$result = implode('<br/>', $result);
@@ -143,7 +175,20 @@ class QuestionBuilder{
 		$result = MoodleUtil::round_to_nearest_grade($score/$default_grade);
 		return $result;
 	}
-	
+
+	/**
+	 * Return a formatted text entry ready to be processed
+	 *
+	 * @param string $text text
+	 * @param int $format text's format
+	 * @param int $itemid existing item id (null for new entries)
+	 */
+	protected function format_text($text, $format = FORMAT_HTML, $itemid = null){
+		return array( 	'text' => $text,
+	       				'format' => FORMAT_HTML,
+	        			'itemid' => null);
+	}
+
 	public function __call($name, $arguments) {
 		$f = array($this->strategy, $name);
 		if(is_callable($f)){
@@ -154,90 +199,6 @@ class QuestionBuilder{
 	}
 
 }
-
-
-
-	//strategy
-	
-	/**
-	 * 
-	 * @param ImsQtiReader $element
-	 */
-	/*protected function to_html($item){
-		return $this->strategy->to_html($item);
-	}
-	
-	/*protected function to_text($item){
-		return $this->strategy->to_text($item);
-	}
-	
-	/**
-	 * 
-	 * @param ImsQtiReader $item
-	 */
-	/*protected function get_score_default($item){
-		return $this->strategy->get_score_default($item);
-	}*/
-	
-	/**
-	 * 
-	 * @param ImsQtiReader $item
-	 */
-	/*protected function get_question_text($item){
-		return $this->strategy->get_question_text($item);
-	}*/
-	
-	/**
-	 * 
-	 * @param ImsQtiReader $item
-	 * @return array
-	 */
-	/*protected function list_outcome($item, $include_feedback_outcome = false){
-		return $this->strategy->list_outcome($item, $include_feedback_outcome);
-	}*/
-	
-	/**
-	 * 
-	 * @param ImsQtiReader $item
-	 * @return ImsQtiReader
-	 */
-	/*protected function get_score_outcome($item){
-		return $this->strategy->get_score_outcome($item);
-	}
-	
-	protected function get_main_response($item){
-		return $this->strategy->get_main_response($item);
-	}
-	
-	/*protected function get_correct_responses(ImsQtiReader $item, ImsQtiReader $interaction){
-		return $this->strategy->get_correct_responses($item, $interaction);
-	}*/
-	
-	/*protected function get_score(ImsQtiReader $item, ImsQtiReader $interaction, $answer, $outcome_id = ''){
-		return $this->strategy->get_score($item, $interaction, $answer, $outcome_id);
-	}*/
-
-	/*protected function get_maximum_score(ImsQtiReader $item, ImsQtiReader $interaction = null){
-		return $this->strategy->get_maximum_score($item, $interaction);
-	}*/
-
-	/*protected function get_penalty(ImsQtiReader $item){
-		return $this->strategy->get_penalty($item);
-	}*/
-	
-	/*protected function get_general_feedbacks(ImsQtiReader $item){
-		return $this->strategy->get_general_feedbacks($item);
-	}	*/
-	
-
-
-
-	/*
-	protected function get_response(ImsQtiReader $item, ImsQtiReader $interaction){
-		return $this->strategy->get_response($item, $interaction);
-	}*/
-
-
 
 
 

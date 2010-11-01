@@ -2,41 +2,37 @@
 
 /**
  * Question builder for DESCRIPTION questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class DescriptionBuilder extends QuestionBuilder{
-	
-	static function factory($item, $source_root, $target_root){
+
+	static function factory($item, $source_root, $target_root, $category){
 		if(!defined("DESCRIPTION")){
 			return null;
 		}else{
 			$count = count($item->list_interactions());
 			if($count == 0 ){
-				return new self($source_root, $target_root);
+				return new self($source_root, $target_root, $category);
 			}else{
 				return null;
 			}
 		}
 	}
-	
-	public function __construct($source_root, $target_root){
-		parent::__construct($source_root, $target_root);
-	}
-	
+
 	public function create_question(){
 		$result = parent::create_question();
         $result->qtype = DESCRIPTION;
-        $result->fraction = 0; 
+        $result->fraction = 0;
 		$result->defaultgrade = 0;
 		$result->feedback = '';
         return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param ImsXmlReader $item
 	 */
 	public function build(ImsXmlReader $item){
@@ -47,7 +43,7 @@ class DescriptionBuilder extends QuestionBuilder{
         $result->generalfeedback = implode('<br/>', $general_feedbacks);
 		return $result;
 	}
-	
+
 }
 
 

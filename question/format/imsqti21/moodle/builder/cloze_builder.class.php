@@ -1,16 +1,16 @@
 <?php
 
 /**
- * 
+ *
  * Question builder for MULTIANSWER/Cloze questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class ClozeBuilder extends QuestionBuilder{
-	
-	static function factory($item, $source_root, $target_root){
+
+	static function factory($item, $source_root, $target_root, $category){
 		if(!defined("MULTIANSWER") || $item->has_templateDeclaration() || !self::has_score($item)){
 			return null;
 		}else{
@@ -22,22 +22,18 @@ class ClozeBuilder extends QuestionBuilder{
 			   		$interaction->is_gapMatchInteraction())){
 			   			return null;
 			   		}
-				
+
 			}
-			return new self($source_root, $target_root);
+			return new self($source_root, $target_root, $category);
 		}
 	}
-	
-	public function __construct($source_root, $target_root){
-		parent::__construct($source_root, $target_root);
-	}
-	
+
 	public function create_question(){
 		$result = parent::create_question();
         $result->qtype = MULTIANSWER;
         return $result;
 	}
-	
+
 	public function build(ImsXmlReader $item){
     	$text = $this->to_cloze($item);
 		$result = qtype_multianswer_extract_question($text);
@@ -48,7 +44,7 @@ class ClozeBuilder extends QuestionBuilder{
         $result->penalty = $this->get_penalty($item);
     	return $result;
 	}
-	
+
 	protected function to_cloze($item){
 		$cloze_renderer = new ClozeRenderer($this->get_strategy(), $item);
 		$result = $cloze_renderer->render($item->get_itemBody());

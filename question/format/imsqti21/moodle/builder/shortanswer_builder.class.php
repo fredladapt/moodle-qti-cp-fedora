@@ -9,7 +9,7 @@
  */
 class ShortanswerBuilder extends QuestionBuilder{
 
-	static function factory($item, $source_root, $target_root){
+	static function factory($item, $source_root, $target_root, $category){
 		if(!defined("SHORTANSWER") || count($item->list_interactions())!=1 || !self::has_score($item)){
 			return null;
 		}else{
@@ -18,15 +18,11 @@ class ShortanswerBuilder extends QuestionBuilder{
 			$is_numeric = self::is_numeric_interaction($item, $main);
 			$has_answers = self::has_answers($item, $main);
 			if($is_text_entry && !$is_numeric && $has_answers ){
-				return new self($source_root, $target_root);
+				return new self($source_root, $target_root, $category);
 			}else{
 				return null;
 			}
 		}
-	}
-
-	public function __construct($source_root, $target_root){
-		parent::__construct($source_root, $target_root);
 	}
 
 	public function create_question(){
@@ -55,7 +51,7 @@ class ShortanswerBuilder extends QuestionBuilder{
     	$responses = $this->get_possible_responses($item, $interaction);
     	foreach($responses as $response){
 			$result->answer[] = $this->get_response_text($item, $response);
-	        $result->feedback[] = $this->get_feedback($item, $interaction, $response, $general_feedbacks);
+	        $result->feedback[] = $this->format_text($this->get_feedback($item, $interaction, $response, $general_feedbacks));
 	        $result->fraction[] = $this->get_fraction($item, $interaction, $response, $result->defaultgrade);
     	}
 		return $result;

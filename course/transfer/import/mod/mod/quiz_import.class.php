@@ -38,7 +38,7 @@ class quiz_import extends mod_import{
 				$maxgrade += $grade;
 			}
 		}
-		
+
 		$data = new StdClass();
 		$data->course = $cid;
 		$data->name =  $reader->get_root()->title;
@@ -46,8 +46,8 @@ class quiz_import extends mod_import{
 		$data->introformat = FORMAT_HTML;
 		$data->questions = '';
 		$data->quizpassword = '';
-		$data->feedbackboundarycount = 0;
-		$data->feedbacktext ='';
+		$data->feedbackboundarycount = -1;
+		$data->feedbacktext = array();
 		$data->grade = $maxgrade;
 		$data->sumgrades = $maxgrade;
 		$data->timeopen = 0;
@@ -63,6 +63,7 @@ class quiz_import extends mod_import{
 
 		quiz_process_options($data);
 		$cm = $this->insert($settings, 'quiz', $data);
+		$data->coursemodule = $cm->module;
 
 		global $DB;
 		foreach($questions as $question){
@@ -77,6 +78,8 @@ class quiz_import extends mod_import{
 				//i.e. put question on page 0
 			}
 		}
+
+		$data->feedbacktext = array( 0=> $this->format_text(''));
 		$DB->update_record('quiz', $data);
 		quiz_after_add_or_update($data);
 
@@ -91,6 +94,18 @@ class quiz_import extends mod_import{
 		$this->message($text);
 	}
 
+	/**
+	 * Return a formatted text entry ready to be processed
+	 *
+	 * @param string $text text
+	 * @param int $format text's format
+	 * @param int $itemid existing item id (null for new entries)
+	 */
+	protected function format_text($text, $format = FORMAT_HTML, $itemid = null){
+		return array( 	'text' => $text,
+	       				'format' => FORMAT_HTML,
+	        			'itemid' => null);
+	}
 }
 
 
