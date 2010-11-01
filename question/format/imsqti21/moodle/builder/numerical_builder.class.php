@@ -61,7 +61,12 @@ class NumericalBuilder extends NumericalBuilderBase{
 		}
 	}
 
-	public function build(ImsXmlReader $item){
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -89,6 +94,41 @@ class NumericalBuilder extends NumericalBuilderBase{
 		}
 
 		//todo: * answers
+		return $result;
+	}
+
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
+
+		$result->instructions = $this->format_text($data->options->instructions);
+
+		$result->showunits = $data->options->showunits;
+		$result->unitsleft = $data->options->unitsleft;
+		$result->unitgradingtype = $data->options->unitgradingtype;
+		$result->unitpenalty = $data->options->unitpenalty;
+
+		$result->multiplier = array();
+		$result->unit = array();
+		$units = $data->options->units;
+		foreach($units as $u){
+			$result->multiplier[] = $u->multiplier;
+			$result->unit[] = $u->unit;
+		}
+
+		$answers = $data->options->answers;
+		foreach($answers as $a){
+			$result->answer[] = $a->answer;
+			$result->fraction[] = $a->fraction;
+			$result->tolerance[] = $a->tolerance;
+			$result->feedback[] = $this->format_text($a->feedback);
+		}
+
 		return $result;
 	}
 }

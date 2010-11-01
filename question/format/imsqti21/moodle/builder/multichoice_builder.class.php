@@ -36,7 +36,12 @@ class MultichoiceBuilder extends QuestionBuilder{
 		return $result;
 	}
 
-	public function build(ImsXmlReader $item){
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -67,6 +72,28 @@ class MultichoiceBuilder extends QuestionBuilder{
 			$result->answer[] = $this->to_text($choice);
 			$result->feedback[] = $this->format_text($this->get_feedback($item, $interaction, $answer, $feedbacks_to_filter_out));
 			$result->fraction[] = $this->get_fraction($item, $interaction, $answer, $result->defaultgrade);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
+
+		$result->single = $data->options->single;
+		$result->shuffleanswers = $data->options->shuffleanswers;
+
+		$answers = $data->options->answers;
+		foreach($answers as $a){
+			$result->answer[] = $a->answer;
+			$result->feedback[] = $this->format_text($a->feedback);
+			$result->fraction[] = $a->fraction;
 		}
 
 		return $result;

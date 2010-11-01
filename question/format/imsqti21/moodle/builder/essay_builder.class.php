@@ -28,6 +28,7 @@ class EssayBuilder extends QuestionBuilder{
 		$result = parent::create_question();
 		$result->qtype = ESSAY;
 		$result->fraction = 0; //essays have no score untill graded by the teacher.
+		$result->feedback = $this->format_text('');
 		return $result;
 	}
 
@@ -35,14 +36,18 @@ class EssayBuilder extends QuestionBuilder{
 	 *
 	 * @param ImsXmlReader $item
 	 */
-	public function build($item){
+	public function build_qti($item){
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
 		$result->defaultgrade = $this->get_maximum_score($item);
-		$result->feedback = $this->format_text('');
 		$general_feedbacks = $this->get_general_feedbacks($item);
 		$result->generalfeedback = implode('<br/>', $general_feedbacks);
+		return $result;
+	}
+
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
 		return $result;
 	}
 

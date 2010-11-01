@@ -4,13 +4,13 @@
 
 /**
  * Serializer for matching questions.
- * 
- * University of Geneva 
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class MatchingSerializer extends QuestionSerializer{
-	
+
 	static function factory($question, $target_root){
 		if(!defined("MATCH") || $question->qtype != MATCH){
 			return null;
@@ -18,14 +18,14 @@ class MatchingSerializer extends QuestionSerializer{
 			return new self($target_root);
 		}
 	}
-	
+
 	static function factory_subquestion($question, $resource_manager){
 		return new SubquestionSerializerEmpty();
 	}
-	
+
 	protected $correct_response = null;
 	protected $mapping = null;
-	
+
 	public function __construct($target_root){
 		parent::__construct($target_root);
 	}
@@ -39,11 +39,11 @@ class MatchingSerializer extends QuestionSerializer{
 		$this->mapping = $result->add_mapping('', '', 0);
 		return $result;
 	}
-	
+
 	protected function add_score_processing($response_processing, $question){
 		return $response_processing->add_standard_response_map_response();
 	}
-	
+
 	protected function add_interaction(ImsQtiWriter $body, $question){
 		$question_count = 0;
 		foreach($question->options->subquestions as $subquestion){
@@ -51,13 +51,13 @@ class MatchingSerializer extends QuestionSerializer{
 				$question_count++;
 			}
 		}
-		
+
 		$result = $body->add_matchInteraction(ImsQtiWriter::RESPONSE, $question_count, $question->options->shuffleanswers);
 		$questions = $result->add_simpleMatchSet();
 		$answers = $result->add_simpleMatchSet();
-		
+
 		$question_score = $question->defaultgrade / $question_count;
-		
+
 		$count = 0;
 		foreach($question->options->subquestions as $subquestion){
 			++$count;
@@ -77,6 +77,8 @@ class MatchingSerializer extends QuestionSerializer{
 		}
 		return $result;
 	}
+
+
 }
 
 

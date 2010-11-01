@@ -48,6 +48,7 @@ class QtiImport{
 			$result = $this->execute_import($filename, $realfilename, $course, $category, $stoponerror);
 			return $result;
 		}catch(Exception $e){
+			debug($e);
 			$this->notify('error', '', $e->getMessage());
 			return false;
 		}
@@ -146,6 +147,9 @@ class QtiImport{
 	}
 
 	protected function get_questions_from_file($filename){
+		if(!file_exists($filename)){
+			return array();
+		}
 		$result = array();
 		$reader = new ImsQtiReader($filename, false);
 		$items = $reader->query('/def:assessmentItem');

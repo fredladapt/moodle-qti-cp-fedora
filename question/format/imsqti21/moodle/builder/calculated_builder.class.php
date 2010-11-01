@@ -56,7 +56,12 @@ class CalculatedBuilder extends CalculatedBuilderBase{
 		return $result;
 	}
 
-	public function build(ImsXmlReader $item){
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -93,6 +98,57 @@ class CalculatedBuilder extends CalculatedBuilderBase{
 			$result->tolerancetype[] = $this->get_tolerancetype($item, $interaction, $formula);
 			$result->correctanswerformat[] = $this->get_correctanswerformat($item, $interaction, $formula);
 			$result->correctanswerlength[] = $this->get_correctanswerlength($item, $interaction, $formula);
+		}
+		return $result;
+	}
+
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
+
+		$result->dataset = $data->options->datasets;
+		$result->single = $data->options->single;
+		$result->shuffleanswers = $data->options->shuffleanswers;
+		$result->answernumbering = $data->options->answernumbering;
+		$result->synchronize = $data->options->synchronize;
+
+		$result->showunits = $data->options->showunits;
+		$result->unitpenalty = $data->options->unitpenalty;
+		$result->unitsleft = $data->options->unitsleft;
+		$result->unitgradingtype = $data->options->unitgradingtype;
+
+		$result->multiplier = array();
+		$result->unit = array();
+		$units = $data->options->units;
+		foreach($units as $u){
+			$result->multiplier[] = $u->multiplier;
+			$result->unit[] = $u->unit;
+		}
+
+		$result->instructions = $this->format_text($result->instructions);
+
+		$answers = $data->options->answers;
+		foreach($answers as $a){
+			$result->answers[] = $a->answer;
+			$result->feedback[] = $this->format_text($a->feedback);
+			$result->fraction[] = $a->fraction;
+			$result->tolerance[] = $a->tolerance;
+			$result->tolerancetype[] = $a->tolerancetype;
+			$result->correctanswerformat[] = $a->tolerancetype;
+			$result->correctanswerlength[] = $a->correctanswerlength;
+		}
+
+		$datasets = $data->options->datasets;
+		foreach($result->dataset as $ds){
+			$ds->min = $ds->minimum;
+			$ds->max = $ds->maximum;
+			$ds->length = end(explode(':', $ds->options));
+			$ds->datasetitem = $ds->items;
 		}
 		return $result;
 	}

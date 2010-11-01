@@ -11,6 +11,8 @@
  */
 class QuestionBuilder{
 
+	const MOODLE_QUESTION_DATA = 'MOODLE_QUESTION_DATA';
+
 	public static function is_calculated(ImsXmlReader $item){
 		if(!$item->has_templateDeclaration()){
 			return false;
@@ -125,6 +127,17 @@ class QuestionBuilder{
 		}
 	}
 
+	function get_data(ImsQtiReader $item){
+		$feedbacks = $item->list_modalFeedback();
+		foreach($feedbacks as $feedback){
+			if($feedback->outcomeIdentifier == self::MOODLE_QUESTION_DATA){
+				$result = $feedback->text();
+				return $result;
+			}
+		}
+		return '';
+	}
+
 	/**
 	 * @return QtiResourceManager
 	 */
@@ -137,24 +150,78 @@ class QuestionBuilder{
 	}
 
 	/**
+	 * Build a question from the file.
 	 *
 	 * @param ImsQtiReader $item
 	 */
 	public function build($item){
+		if($data = $this->get_data($item)){
+			$data = unserialize($data);
+			return $this->build_moodle($data);
+		}else{
+			return $this->build_qti($item);
+		}
+	}
+
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		return null;
 	}
 
-	protected function create_question(){
-        $default = new qformat_default();
-        $result = $default->defaultquestion();
-        $result->usecase = 0; // Ignore case
-        $result->image = ''; // No image
-        $result->questiontextformat = 1; //HTML
-        $result->answer = array();
-        $result->context = $this->get_context();
-        $category = $this->get_category();
-        $result->category = $category ? $category->name : '';
-        return $result;
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = $this->create_question();
+		if(isset($data->name)){
+			$result->name =  $data->name;
+		}
+		if(isset($data->questiontext)){
+			$result->questiontext = $data->questiontext;
+		}
+		if(isset($data->generalfeedback)){
+			$result->generalfeedback = $data->generalfeedback;
+		}
+		if(isset($data->penalty)){
+			$result->penalty = $data->penalty;
+		}
+		if(isset($data->defaultgrade)){
+			$result->defaultgrade = $data->defaultgrade;
+		}
+		if(isset($data->options)){
+			if(isset($data->options->correctfeedback)){
+				$result->correctfeedback = $this->format_text($data->options->correctfeedback);
+			}
+			if(isset($data->options->partiallycorrectfeedback)){
+				$result->partiallycorrectfeedback = $this->format_text($data->options->partiallycorrectfeedback);
+			}
+			if(isset($data->options->incorrectfeedback)){
+				$result->incorrectfeedback = $this->format_text($data->options->incorrectfeedback);
+			}
+		}
+
+		return $result;
+	}
+
+	protected function create_question($data = null){
+		$default = new qformat_default();
+		$result = $default->defaultquestion();
+		$result->usecase = 0; // Ignore case
+		$result->image = ''; // No image
+		$result->questiontextformat = FORMAT_HTML; //HTML
+		$result->answer = array();
+		$result->context = $this->get_context();
+		$category = $this->get_category();
+		$result->category = $category ? $category->name : '';
+
+		return $result;
 	}
 
 	protected function get_feedback(ImsQtiReader $item, ImsQtiReader $interaction, $answer, $filter_out){

@@ -188,6 +188,10 @@ class import_settings{
 			return $this->reader;
 		}
 
+		if(!file_exists( $this->path)){
+			return $this->reader = ImsXmlReader::get_empty_reader();
+		}
+
 		$path = $this->path;
 		$ext = pathinfo($path, PATHINFO_EXTENSION);
 		if($ext == 'xml'){
@@ -211,7 +215,11 @@ class import_settings{
 				foreach($files as $file){
 					if(strtolower($file) == 'imsmanifest.xml'){
 						$path = $dir .'/'. $file;
-						return $this->manifest_reader = new ImscpManifestReader($dir .'/'. $file);
+						if(!file_exists($path)){
+							return $this->manifest_reader = ImsXmlReader::get_empty_reader();
+						}else{
+							return $this->manifest_reader = new ImscpManifestReader($path);
+						}
 					}
 				}
 			}

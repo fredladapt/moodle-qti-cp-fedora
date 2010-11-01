@@ -50,6 +50,8 @@ class ClozeBuilder extends QuestionBuilder{
 		$result = $cloze_renderer->render($item->get_itemBody());
 		return $result;
 	}
+
+
 }
 
 

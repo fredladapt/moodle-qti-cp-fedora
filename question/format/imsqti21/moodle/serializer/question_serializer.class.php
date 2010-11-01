@@ -13,6 +13,8 @@
  */
 class QuestionSerializer extends QuestionSerializerBase{
 
+	const MOODLE_QUESTION_DATA = 'MOODLE_QUESTION_DATA';
+
 	static function question_identifier($question){
 		$catalog_name = MoodleUtil::get_catalog_name();
 		$result = "$catalog_name:Q_". str_pad($question->id, 8, '0', STR_PAD_LEFT);
@@ -24,20 +26,20 @@ class QuestionSerializer extends QuestionSerializerBase{
 	 */
 	static function factory($question, $target_root){
 		/*
-		$directory = dirname(__FILE__);
-		$entries = scandir($directory);
-		foreach($entries as $entry){
+		 $directory = dirname(__FILE__);
+		 $entries = scandir($directory);
+		 foreach($entries as $entry){
 			$path = $directory. '/'. $entry;
 			if(self::accept_file($path)){
-				$path = realpath($path);
-				require_once $path;
-				$class = self::class_name($path);
-				if($result = $class::factory($question, $source_root, $target_root)){
-					return $result;
-				}
+			$path = realpath($path);
+			require_once $path;
+			$class = self::class_name($path);
+			if($result = $class::factory($question, $source_root, $target_root)){
+			return $result;
 			}
-		}
-		*/
+			}
+			}
+			*/
 
 		if($result = EssaySerializer::factory($question, $target_root)){
 			return $result;
@@ -151,6 +153,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 		$this->body = $this->add_body($item, $question);
 		$this->response_processing = $this->add_response_processing($item, $question);
 		$this->add_modal_feedback($item, $question);
+		$this->add_question_data($item, $question);
 		return $writer->saveXML();
 	}
 
@@ -165,7 +168,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 	}
 
 	protected function add_stylesheet(ImsQtiWriter $item, $question){
-		 return null;
+		return null;
 	}
 
 	protected function add_response_declaration(ImsQtiWriter $item, $question){
@@ -310,13 +313,13 @@ class QuestionSerializer extends QuestionSerializerBase{
 		}
 		$penalty_value = $question->penalty;
 		$result = $processing->add_responseCondition();
-    	$if = $result->add_responseIf();
-    	$if->add_isNull()->add_variable($penalty_id);
-    	$if->add_setOutcomeValue($penalty_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, $penalty_value);
-    	$sum = $result->add_responseElse()->add_setOutcomeValue($penalty_id)->add_sum();
-    	$sum->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, $penalty_value);
-    	$sum->add_variable($penalty_id);
-    	return $result;
+		$if = $result->add_responseIf();
+		$if->add_isNull()->add_variable($penalty_id);
+		$if->add_setOutcomeValue($penalty_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, $penalty_value);
+		$sum = $result->add_responseElse()->add_setOutcomeValue($penalty_id)->add_sum();
+		$sum->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, $penalty_value);
+		$sum->add_variable($penalty_id);
+		return $result;
 	}
 
 	protected function add_add_penalty(ImsQtiWriter $processing, $question, $input_id = ImsQtiWriter::SCORE,  $score_id = ImsQtiWriter::SCORE, $penalty_id = self::PENALTY){
@@ -325,17 +328,17 @@ class QuestionSerializer extends QuestionSerializerBase{
 		}
 
 		$result = $processing->add_setOutcomeValue($score_id);
-    	$sum = $result->add_subtract();
-    	$sum->add_variable($input_id);
-    	$sum->add_variable($penalty_id);
+		$sum = $result->add_subtract();
+		$sum->add_variable($input_id);
+		$sum->add_variable($penalty_id);
 
 		$result = $processing->add_responseCondition();
-    	$if = $result->add_responseIf();
-    	$lt = $if->add_lt();
-    	$lt->add_variable($input_id);
-    	$lt->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
-    	$if->add_setOutcomeValue($input_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
-    	return $result;
+		$if = $result->add_responseIf();
+		$lt = $if->add_lt();
+		$lt->add_variable($input_id);
+		$lt->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
+		$if->add_setOutcomeValue($input_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
+		return $result;
 	}
 
 	protected function add_response_processing(ImsQtiWriter $item, $question){
@@ -347,6 +350,51 @@ class QuestionSerializer extends QuestionSerializerBase{
 		return $result;
 	}
 
+	//
+
+	protected function add_question_data(ImsQtiWriter $item, $question){
+		$id = self::MOODLE_QUESTION_DATA;
+		$value = 'true';
+
+		$q = clone $question;
+		$q = $this->get_question_data($q);
+
+		$text = serialize($q);
+		$result = $item->add_modalFeedback($id, $value, 'show')->add_text($text);
+		return $result;
+	}
+
+	/**
+	 * Returns data to be serialized on top of the QTI format.
+	 * Made of the question's object minus fields that don't have a meaning in another system.
+	 *
+	 * Remove question's fields which don't have a meaning in another system.
+	 * For example question id, user id, etc
+	 *
+	 * @param object $question
+	 * @return object
+	 */
+	protected function get_question_data($question){
+		//does not have a meaning in another system - ids, user ids, etc
+		unset($question->id);
+		unset($question->category);
+		unset($question->parent);
+		unset($question->createdby);
+		unset($question->modifiedby);
+		unset($question->stamp);
+		unset($question->version);
+
+		if(isset($question->options)){
+			unset($question->options->question);
+			if(isset($question->options->subquestions)){
+				foreach($question->options->subquestions as $q){
+					unset($q->question);
+				}
+			}
+		}
+
+		return $question;
+	}
 
 }
 

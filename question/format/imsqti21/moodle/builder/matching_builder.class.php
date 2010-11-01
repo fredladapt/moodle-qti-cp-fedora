@@ -107,7 +107,12 @@ class MatchingBuilder extends QuestionBuilder{
 		return strtolower($response->baseType) == strtolower('directedPair');
 	}
 
-	public function build(ImsXmlReader $item){
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		$result = $this->create_question();
         $result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -131,6 +136,27 @@ class MatchingBuilder extends QuestionBuilder{
     	}
 		return $result;
 	}
+
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
+
+    	$result->shuffleanswers = $data->options->shuffleanswers;
+    	$result->subquestions = array();
+    	$result->subanswers = array();
+
+    	foreach($data->options->subquestions as $q){
+    		$result->subquestions[]  = $this->format_text($q->questiontext);
+    		$result->subanswers[] = $q->answertext;
+    	}
+		return $result;
+	}
+
 }
 
 

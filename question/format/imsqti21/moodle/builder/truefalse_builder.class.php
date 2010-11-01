@@ -44,7 +44,12 @@ class TruefalseBuilder extends QuestionBuilder{
 		return $result;
 	}
 
-	public function build(ImsXmlReader $item){
+	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
+	 *
+	 * @param ImsQtiReader $item
+	 */
+	public function build_qti($item){
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->penalty = $this->get_penalty($item);
@@ -71,6 +76,23 @@ class TruefalseBuilder extends QuestionBuilder{
 		return $result;
 	}
 
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param object $data
+	 */
+	public function build_moodle($data){
+		$result = parent::build_moodle($data);
+		$true_answer = $data->options->answers[$data->options->trueanswer];
+		$false_answer = $data->options->answers[$data->options->falseanswer];
+
+		$result->feedbacktrue= $this->format_text($true_answer->feedback);
+		$result->feedbackfalse = $this->format_text($false_answer->feedback);
+		$result->correctanswer = $data->options->trueanswer;
+
+		return $result;
+	}
 }
 
 

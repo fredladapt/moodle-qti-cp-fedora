@@ -15,15 +15,23 @@ class resource_import extends mod_import{
 	}
 
 	protected function process_import(import_settings $settings){
+		//file may be removed by another import module
+		//if the other module import fail the file not be present anymore
+		//in this case we return null and leave the import process follows its path
+		if(!file_exists($settings->get_path())){
+			return null;
+		}
+
 		$cid = $settings->get_course_id();
 		$path = $settings->get_path();
+
 		$filename = $settings->get_filename();
 		$ext = $settings->get_extention();
 		$mimetype = ext_to_mimetype($ext);
 		if($ext){
 			$filename = trim_extention($filename) . '.' . $ext;
 		}
-		
+
 		$data = new StdClass();
 		$data->course = $cid;
 		$data->name =  trim_extention($filename);
