@@ -50,7 +50,29 @@ class SerializerBase{
 
 	//TRANSLATE TEXT
 
-	protected function translate_text($text, $text_format=self::FORMAT_HTML, $question=null){
+	protected function translate_feedback_text($text, $text_format=self::FORMAT_HTML, $question=null){
+		if(empty($text)){
+			return $text;
+		}else if($text_format == self::FORMAT_PLAIN_TEXT){
+			return "<span>$text</span>";
+		}else if($text_format == self::FORMAT_MOODLE_AUTO_FORMAT){
+			return $text;
+		}else if($text_format ==  self::FORMAT_HTML){
+			$doc = new DOMDocument();
+			$doc->loadHTML('<?xml encoding="UTF-8">' . $text);
+	    	$this->translate_nodes($doc->childNodes, $question);
+	    	$body = $doc->getElementsByTagName('body')->item(0);
+
+	    	$result = $doc->saveXML($body);
+	    	$result = str_replace('<body>', '', $result);
+	    	$result = str_replace('</body>', '', $result);
+	    	return $result;
+		}else{
+			return '';
+		}
+	}
+
+	protected function translate_question_text($text, $text_format=self::FORMAT_HTML, $question=null){
 		if(empty($text)){
 			return $text;
 		}else if($text_format == self::FORMAT_PLAIN_TEXT){
@@ -95,7 +117,6 @@ class SerializerBase{
 
     private function rewrite_path($node, $attribute, $question){
     	if(!$node->hasAttribute($attribute)) return;
-
     	$path = $node->getAttribute($attribute);
     	$path = str_replace('@@PLUGINFILE@@', $question->id . '/'. $question->category, $path);
     	$path = $this->resource_manager->translate_path($path);

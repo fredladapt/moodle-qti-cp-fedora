@@ -9,14 +9,30 @@
  */
 class MultichoiceBuilder extends QuestionBuilder{
 
-	static function factory($item, $source_root, $target_root, $category){
-		if(!defined("MULTICHOICE") || !self::has_score($item)){
+	static function factory(QtiImportSettings $settings){
+		if(!defined('MULTICHOICE')){
+			return null;
+		}
+
+		$item = $settings->get_reader();
+		$category = $settings->get_category();
+
+		//if it is a reimport
+		if($data = $settings->get_data()){
+			if($data->qtype == MULTICHOICE){
+				return new self($category);
+			}else{
+				return null;
+			}
+		}
+
+		if( !self::has_score($item)){
 			return null;
 		}else{
 			$count = count($item->list_interactions());
 			$main = self::get_main_interaction($item);
 			if($count == 1 && $main->is_choiceInteraction()){
-				return new self($source_root, $target_root, $category);
+				return new self($category);
 			}else{
 				return null;
 			}
@@ -39,9 +55,12 @@ class MultichoiceBuilder extends QuestionBuilder{
 	/**
 	 * Build questions using the QTI format. Doing a projection by interpreting the file.
 	 *
-	 * @param ImsQtiReader $item
+	 * @param QtiImportSettings $settings
+	 * @return object|null
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
+		$item = $settings->get_reader();
+
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -81,13 +100,17 @@ class MultichoiceBuilder extends QuestionBuilder{
 	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
 	 * Used to process data not supported by QTI and to improve performances.
 	 *
-	 * @param object $data
+	 * @param QtiImportSettings $data
+	 * @return object|null
 	 */
-	public function build_moodle($data){
-		$result = parent::build_moodle($data);
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
+
+		$result = parent::build_moodle($settings);
 
 		$result->single = $data->options->single;
 		$result->shuffleanswers = $data->options->shuffleanswers;
+		$result->answernumbering = $data->options->layout;
 
 		$answers = $data->options->answers;
 		foreach($answers as $a){
@@ -98,6 +121,7 @@ class MultichoiceBuilder extends QuestionBuilder{
 
 		return $result;
 	}
+
 }
 
 

@@ -3,14 +3,14 @@
 //require_once dirname(dirname(__FILE__)) .'/main.php';
 
 /**
- * Serializer for short-answers questions. 
- * 
- * University of Geneva 
+ * Serializer for short-answers questions.
+ *
+ * University of Geneva
  * @author laurent.opprecht@unige.ch
  *
  */
 class ShortanswerSerializer extends QuestionSerializer{
-	
+
 	static function factory($question, $target_root){
 		if(!defined('SHORTANSWER') || $question->qtype != SHORTANSWER){
 			return null;
@@ -18,7 +18,7 @@ class ShortanswerSerializer extends QuestionSerializer{
 			return new self($target_root);
 		}
 	}
-	
+
 	static function factory_subquestion($question, $resource_manager){
 		if(!defined("SHORTANSWER") || $question->qtype != SHORTANSWER){
 			return new SubquestionSerializerEmpty();
@@ -26,9 +26,9 @@ class ShortanswerSerializer extends QuestionSerializer{
 			return new ShortanswerSSubquestionSerializer($resource_manager);
 		}
 	}
-	
+
 	protected $correct_response = null;
-	
+
 	public function __construct($target_root){
 		parent::__construct($target_root);
 	}
@@ -41,7 +41,7 @@ class ShortanswerSerializer extends QuestionSerializer{
 		$this->correct_response = $result->add_correctResponse();
 		return $result;
 	}
-	
+
 	protected function add_score_processing($response_processing, $question){
 		$result = $response_processing->add_responseCondition();
 		$response_id = ImsQtiWriter::RESPONSE;
@@ -66,7 +66,7 @@ class ShortanswerSerializer extends QuestionSerializer{
     	$else->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
 		return $result;
 	}
-	
+
 	protected function add_answer_feedback_processing($response_processing, $question){
 		$result = $response_processing->add_responseCondition();
 		$response_id = ImsQtiWriter::RESPONSE;
@@ -92,18 +92,18 @@ class ShortanswerSerializer extends QuestionSerializer{
     	$else->add_setOutcomeValue($outcome_id)->add_baseValue(ImsQtiWriter::BASETYPE_IDENTIFIER, 'ID_0');
 		return $result;
 	}
-	
-	protected function add_answer_feedback(ImsQtiWriter $item, $question){   
+
+	protected function add_answer_feedback(ImsQtiWriter $item, $question){
 		$count = 0;
 		foreach($question->options->answers as $answer){
     		$id = 'ID_' . ++$count;
 			if($has_feeback = !empty($answer->feedback)){
-				$text = $this->translate_text($answer->feedback, self::FORMAT_HTML, $question);
+				$text = $this->translate_feedback_text($answer->feedback, self::FORMAT_HTML, $question);
 				$item->add_modalFeedback(ImsQtiWriter::FEEDBACK, $id, 'show')->add_flow($text);
 			}
 		}
 	}
-	
+
 	protected function add_interaction(ImsQtiWriter $body, $question){
 		$expectedLength = 0;
 		foreach($question->options->answers as $answer){
@@ -111,7 +111,7 @@ class ShortanswerSerializer extends QuestionSerializer{
 		}
 
 		$result = $body->add_extendedTextInteraction(ImsQtiWriter::RESPONSE, $expectedLength, 1, 1);
-		
+
 		foreach($question->options->answers as $answer){
 			if($answer->fraction == 1.0 && !ShortanswerUtil::is_regex($answer->answer)){
 				$this->correct_response->add_value($answer->answer);
@@ -119,7 +119,7 @@ class ShortanswerSerializer extends QuestionSerializer{
 		}
 		return $result;
 	}
-	
+
 	protected function translate_regex($regex, $is_case_sensitive){
 		$result = $is_case_sensitive ? $regex : strtolower($regex);
 		$metacharacters = array('.', '\\', '?', '+', '{', '}', '(', ')', '[', ']');
@@ -166,7 +166,7 @@ class ShortanswerUtil{
 }
 
 /**
- * 
+ *
  * Used to serialize children questions embeded in a multi-answer/cloze parent question.
  * @author lo
  *
@@ -176,13 +176,13 @@ class ShortanswerSSubquestionSerializer extends SubquestionSerializer{
 	public function __construct($resource_manager){
 		parent::__construct($resource_manager);
 	}
-	
+
 	public function add_feedback(ImsQtiWriter $item, $question){
 		$feedback_id = $this->feedback_id($question);
 		foreach($question->options->answers as $answer){
 			if($has_feeback = !empty($answer->feedback)){
     			$answer_id = $this->answer_id($answer);
-				$text = $this->translate_text($answer->feedback, self::FORMAT_HTML, $question);
+				$text = $this->translate_feedback_text($answer->feedback, self::FORMAT_HTML, $question);
 				$item->add_modalFeedback($feedback_id, $answer_id, 'show')->add_flow($text);
 			}
 		}
@@ -230,7 +230,7 @@ class ShortanswerSSubquestionSerializer extends SubquestionSerializer{
 		$type = ImsQtiWriter::BASETYPE_STRING;
 		$result = $item->add_responseDeclaration($id, $cardinality, $type);
 		$correct_response = $result->add_correctResponse();
-	
+
 		foreach($question->options->answers as $answer){
 			if($answer->fraction == 1.0 && !ShortanswerUtil::is_regex($answer->answer)){
 				$correct_response->add_value($answer->answer);
@@ -270,7 +270,7 @@ class ShortanswerSSubquestionSerializer extends SubquestionSerializer{
     	$else->add_setOutcomeValue($score_id)->add_baseValue(ImsQtiWriter::BASETYPE_FLOAT, 0);
 		return $result;
 	}
-	
+
 	public function add_interaction(ImsQtiWriter $item, $question){
 		$expectedLength = 0;
 		foreach($question->options->answers as $answer){
@@ -279,7 +279,7 @@ class ShortanswerSSubquestionSerializer extends SubquestionSerializer{
 		$response_id = $this->response_id($question);
 		$result = $item->add_textEntryInteraction($response_id, '', '', $expectedLength);
 		return $result;
-		
+
 	}
 }
 

@@ -11,8 +11,6 @@
  */
 class QuestionBuilder{
 
-	const MOODLE_QUESTION_DATA = 'MOODLE_QUESTION_DATA';
-
 	public static function is_calculated(ImsXmlReader $item){
 		if(!$item->has_templateDeclaration()){
 			return false;
@@ -31,28 +29,28 @@ class QuestionBuilder{
 	 * @param ImsQtiReader $item
 	 * @return QuestionBuilder
 	 */
-	public static function factory($item, $source_root, $target_root, $category){
-		if($result = EssayBuilder::factory($item, $source_root, $target_root, $category)){
+	public static function factory(QtiImportSettings $settings){
+		if($result = EssayBuilder::factory($settings)){
 			return $result;
-		}else if($result = TruefalseBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = TruefalseBuilder::factory($settings)){
 			return $result;
-		}else if($result = MatchingBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = MatchingBuilder::factory($settings)){
 			return $result;
-		}else if($result = NumericalBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = NumericalBuilder::factory($settings)){
 			return $result;
-		}else if($result = DescriptionBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = DescriptionBuilder::factory($settings)){
 			return $result;
-		}else if($result = CalculatedSimpleBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = CalculatedSimpleBuilder::factory($settings)){
 			return $result;
-		}else if($result = CalculatedBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = CalculatedBuilder::factory($settings)){
 			return $result;
-		}else if($result = CalculatedMultichoiceBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = CalculatedMultichoiceBuilder::factory($settings)){
 			return $result;
-		}else if($result = MultichoiceBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = MultichoiceBuilder::factory($settings)){
 			return $result;
-		}else if($result = ShortanswerBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = ShortanswerBuilder::factory($settings)){
 			return $result;
-		}else if($result = ClozeBuilder::factory($item, $source_root, $target_root, $category)){
+		}else if($result = ClozeBuilder::factory($settings)){
 			return $result;
 		}
 		return null;
@@ -95,9 +93,8 @@ class QuestionBuilder{
 	private $strategy = null;
 	private $category = '';
 
-	public function __construct($source_root, $target_root, $category){
-		$resource_manager = new QtiImportResourceManager($source_root, $target_root);
-		$renderer = new QtiPartialRenderer($resource_manager);
+	public function __construct($category){
+		$renderer = new QtiPartialRenderer();
 		$this->strategy = QtiImportStrategyBase::create_moodle_default_strategy($renderer);
 		$this->category = $category;
 	}
@@ -127,40 +124,19 @@ class QuestionBuilder{
 		}
 	}
 
-	function get_data(ImsQtiReader $item){
-		$feedbacks = $item->list_modalFeedback();
-		foreach($feedbacks as $feedback){
-			if($feedback->outcomeIdentifier == self::MOODLE_QUESTION_DATA){
-				$result = $feedback->text();
-				return $result;
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * @return QtiResourceManager
-	 */
-	public function get_resource_manager(){
-		return $this->strategy->get_renderer()->get_resource_manager();
-	}
-
-	public function get_resources(){
-		return $this->get_resource_manager()->get_resources();
-	}
-
 	/**
 	 * Build a question from the file.
 	 *
 	 * @param ImsQtiReader $item
 	 */
-	public function build($item){
-		if($data = $this->get_data($item)){
-			$data = unserialize($data);
-			return $this->build_moodle($data);
+	public function build(QtiImportSettings $settings){
+		if($data = $settings->get_data()){
+			$result = $this->build_moodle($settings);
 		}else{
-			return $this->build_qti($item);
+			$result = $this->build_qti($settings);
 		}
+		$result->questiontext = $this->translate($settings, $result, $result->questiontext);
+		return $result;
 	}
 
 	/**
@@ -168,7 +144,7 @@ class QuestionBuilder{
 	 *
 	 * @param ImsQtiReader $item
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
 		return null;
 	}
 
@@ -178,7 +154,8 @@ class QuestionBuilder{
 	 *
 	 * @param object $data
 	 */
-	public function build_moodle($data){
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
 		$result = $this->create_question();
 		if(isset($data->name)){
 			$result->name =  $data->name;
@@ -220,9 +197,43 @@ class QuestionBuilder{
 		$result->context = $this->get_context();
 		$category = $this->get_category();
 		$result->category = $category ? $category->name : '';
-
+		$result->resources = array();
 		return $result;
 	}
+
+	// TRANSLATE RELATIVE PATH
+
+	protected function translate(QtiImportSettings $settings, $question, $text){
+		$pattern = '/src="[^"]*"/';
+		$matches = array();
+		preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
+		foreach($matches as $match){
+			$match = reset($match);
+			$match = str_replace('src="', '', $match);
+			$match = trim($match, '"');
+			$replace = $this->translate_path($match);
+			$text = str_ireplace('src="'. $match . '"','src="'.  $replace. '"', $text);
+			$name = end(explode('/', $match));
+			$question->resources[$name] = $settings->get_directory() . $match;
+		}
+		return $text;
+	}
+
+	protected function translate_path($path){
+		if(! $this->is_path_relative($path)){
+			return $path;
+		}
+
+		$name = end(explode('/', $path));
+		$result = '@@PLUGINFILE@@/' . $name;
+		return $result;
+	}
+
+	public function is_path_relative($path){
+		return strlen($path)<5 || strtolower(substr($path, 0, 4)) != 'http';
+	}
+
+	// UTIL
 
 	protected function get_feedback(ImsQtiReader $item, ImsQtiReader $interaction, $answer, $filter_out){
 		$result =  $this->get_feedbacks($item, $interaction, $answer, $filter_out);

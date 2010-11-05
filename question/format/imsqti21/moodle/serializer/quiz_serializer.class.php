@@ -25,7 +25,7 @@ class QuizSerializer extends SerializerBase{
 		$part = $test->add_testPart(null, Qti::NAVIGATION_MODE_LINEAR, Qti::SUBMISSION_MODE_INDIVIDUAL);
 		$part->add_itemSessionControl(0, true, true, true, true, true, false);
 		$section = $part->add_assessmentSection(null, $quiz->name, false);
-		$instruction = $this->translate_text($quiz->intro);
+		$instruction = $this->translate_question_text($quiz->intro);
 
 		$section->add_rubricBlock(Qti::VIEW_ALL)->add_flow($instruction);
 

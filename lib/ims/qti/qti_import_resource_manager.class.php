@@ -25,14 +25,13 @@ class QtiImportResourceManager extends QtiResourceManagerBase{
     	$source_path = $this->canonicalize($source_path);
 
     	$target_root = $this->get_target_root();
-    	//$source_root = $this->canonicalize($this->get_source_root());
+    	$source_root = $this->canonicalize($this->get_source_root());
 
     	$name = explode('/', $path);
 
     	$result = $target_root . $name;
-    	debug($result);
 
-    	//$result = str_replace($source_root, $target_root, $source_path);
+    	$result = str_replace($source_root, $target_root, $source_path);
     	$this->register($result, $source_path);
     	return $result;
     }

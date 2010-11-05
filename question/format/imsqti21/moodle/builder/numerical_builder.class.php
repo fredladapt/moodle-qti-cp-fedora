@@ -9,8 +9,24 @@
  */
 class NumericalBuilder extends NumericalBuilderBase{
 
-	static function factory($item, $source_root, $target_root, $category){
-		if(!defined('NUMERICAL') || count($item->list_interactions())>2 || !self::has_score($item)){
+	static function factory(QtiImportSettings $settings){
+		if(!defined('NUMERICAL')){
+			return null;
+		}
+
+		$item = $settings->get_reader();
+		$category = $settings->get_category();
+
+		//if it is a reimport
+		if($data = $settings->get_data()){
+			if($data->qtype == NUMERICAL){
+				return new self($category);
+			}else{
+				return null;
+			}
+		}
+
+		if(count($item->list_interactions())>2 || !self::has_score($item)){
 			return null;
 		}
 		if(self::is_calculated($item)){
@@ -30,7 +46,7 @@ class NumericalBuilder extends NumericalBuilderBase{
 		if(! self::has_answers($item, $main)){
 			return null;
 		}
-		return new self($source_root, $target_root, $category);
+		return new self($category);
 	}
 
 	public function create_question(){
@@ -64,9 +80,12 @@ class NumericalBuilder extends NumericalBuilderBase{
 	/**
 	 * Build questions using the QTI format. Doing a projection by interpreting the file.
 	 *
-	 * @param ImsQtiReader $item
+	 * @param QtiImportSettings $settings
+	 * @return object|null
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
+		$item = $settings->get_reader();
+
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -101,10 +120,13 @@ class NumericalBuilder extends NumericalBuilderBase{
 	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
 	 * Used to process data not supported by QTI and to improve performances.
 	 *
-	 * @param object $data
+	 * @param QtiImportSettings $data
+	 * @return object|null
 	 */
-	public function build_moodle($data){
-		$result = parent::build_moodle($data);
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
+
+		$result = parent::build_moodle($settings);
 
 		$result->instructions = $this->format_text($data->options->instructions);
 

@@ -9,7 +9,23 @@
  */
 class CalculatedMultichoiceBuilder extends CalculatedBuilderBase{
 
-	static function factory(ImsQtiReader $item, $source_root, $target_root, $category){
+	static function factory(QtiImportSettings $settings){
+		if(!defined('CALCULATEDMULTI')){
+			return null;
+		}
+
+		$item = $settings->get_reader();
+		$category = $settings->get_category();
+
+		//if it is a reimport
+		if($data = $settings->get_data()){
+			if($data->qtype == CALCULATEDMULTI){
+				return new self($category);
+			}else{
+				return null;
+			}
+		}
+
 		if(count($item->list_interactions())>1 || !self::has_score($item)){
 			return null;
 		}
@@ -18,7 +34,7 @@ class CalculatedMultichoiceBuilder extends CalculatedBuilderBase{
 		}
 		$main = self::get_main_interaction($item);
 		if( $main->is_choiceInteraction()){
-			return new self($source_root, $target_root, $category);
+			return new self($category);
 		}else{
 			return false;
 		}
@@ -52,9 +68,12 @@ class CalculatedMultichoiceBuilder extends CalculatedBuilderBase{
 	/**
 	 * Build questions using the QTI format. Doing a projection by interpreting the file.
 	 *
-	 * @param ImsQtiReader $item
+	 * @param QtiImportSettings $settings
+	 * @return object|null
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
+		$item = $settings->get_reader();
+
 		$result = $this->create_question();
 		$result->name = $this->get_question_title($item);
 		$result->questiontext = $this->get_question_text($item);
@@ -100,10 +119,13 @@ class CalculatedMultichoiceBuilder extends CalculatedBuilderBase{
 	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
 	 * Used to process data not supported by QTI and to improve performances.
 	 *
-	 * @param object $data
+	 * @param QtiImportSettings $data
+	 * @return object|null
 	 */
-	public function build_moodle($data){
-		$result = parent::build_moodle($data);
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
+
+		$result = parent::build_moodle($settings);
 
 		$result->dataset = $data->options->datasets;
 		$result->single = $data->options->single;
@@ -118,7 +140,7 @@ class CalculatedMultichoiceBuilder extends CalculatedBuilderBase{
 			$result->fraction[] = $a->fraction;
 			$result->tolerance[] = $a->tolerance;
 			$result->tolerancetype[] = $a->tolerancetype;
-			$result->correctanswerformat[] = $a->tolerancetype;
+			$result->correctanswerformat[] = $a->correctanswerformat;
 			$result->correctanswerlength[] = $a->correctanswerlength;
 		}
 

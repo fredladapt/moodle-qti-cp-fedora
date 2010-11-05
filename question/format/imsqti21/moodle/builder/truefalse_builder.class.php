@@ -9,8 +9,23 @@
  */
 class TruefalseBuilder extends QuestionBuilder{
 
-	static function factory(ImsQtiReader $item, $source_root, $target_root, $category){
-		if(!defined("TRUEFALSE") || count($item->list_interactions())>1 || !self::has_score($item)){
+	static function factory(QtiImportSettings $settings){
+		if(!defined('TRUEFALSE')){
+			return null;
+		}
+		$item = $settings->get_reader();
+		$category = $settings->get_category();
+
+		//if it is a reimport
+		if($data = $settings->get_data()){
+			if($data->qtype == TRUEFALSE){
+				return new self($category);
+			}else{
+				return null;
+			}
+		}
+
+		if(count($item->list_interactions())>1 || !self::has_score($item)){
 			return null;
 		}
 		$main = self::get_main_interaction($item);
@@ -26,7 +41,7 @@ class TruefalseBuilder extends QuestionBuilder{
 		$true = strtolower(get_string('true', 'qtype_truefalse'));
 		$false = strtolower(get_string('false', 'qtype_truefalse'));
 		if(($t0 == $true || $t0 == $false) && ($t1 == $true || $t1 == $false)){
-			return new self($source_root, $target_root, $category);
+			return new self($category);
 		}else{
 			return null;
 		}
@@ -47,9 +62,12 @@ class TruefalseBuilder extends QuestionBuilder{
 	/**
 	 * Build questions using the QTI format. Doing a projection by interpreting the file.
 	 *
-	 * @param ImsQtiReader $item
+	 * @param QtiImportSettings $settings
+	 * @return object|null
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
+		$item = $settings->get_reader();
+
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->penalty = $this->get_penalty($item);
@@ -80,19 +98,23 @@ class TruefalseBuilder extends QuestionBuilder{
 	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
 	 * Used to process data not supported by QTI and to improve performances.
 	 *
-	 * @param object $data
+	 * @param QtiImportSettings $data
+	 * @return object|null
 	 */
-	public function build_moodle($data){
-		$result = parent::build_moodle($data);
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
+
+		$result = parent::build_moodle($settings);
 		$true_answer = $data->options->answers[$data->options->trueanswer];
 		$false_answer = $data->options->answers[$data->options->falseanswer];
 
 		$result->feedbacktrue= $this->format_text($true_answer->feedback);
 		$result->feedbackfalse = $this->format_text($false_answer->feedback);
-		$result->correctanswer = $data->options->trueanswer;
+		$result->correctanswer = intval($true_answer->fraction) == 1;
 
 		return $result;
 	}
+
 }
 
 

@@ -130,8 +130,8 @@ class CalculatedSerializerBase extends NumericalSerializerBase{
 		return $result;
 	}
 
-	protected function translate_text($text, $text_format=self::FORMAT_HTML, $question){
-		$result = parent::translate_text($text, $text_format, $question);
+	protected function translate_question_text($text, $text_format=self::FORMAT_HTML, $question){
+		$result = parent::translate_question_text($text, $text_format, $question);
 		$pattern = "/^\{[a-zA-Z_][a-zA-Z0-9_]*\}/";;
 		$datasets = isset($question->options->datasets) ? $question->options->datasets : array();
 		foreach($datasets as $dataset){

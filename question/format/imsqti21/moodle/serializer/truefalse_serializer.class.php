@@ -50,7 +50,7 @@ class TrueFalseSerializer extends QuestionSerializer{
 		foreach($question->options->answers as $answer){
 			$identifier = $answer->answer;
 			if($has_feeback = !empty($answer->feedback)){
-		        $text = $this->translate_text($answer->feedback, self::FORMAT_HTML, $question);
+		        $text = $this->translate_feedback_text($answer->feedback, self::FORMAT_HTML, $question);
 		        $item->add_modalFeedback(ImsQtiWriter::FEEDBACK, $identifier, 'show')->add_flow($text);
 		    }
 	    }

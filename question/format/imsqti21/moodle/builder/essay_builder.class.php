@@ -9,16 +9,27 @@
  */
 class EssayBuilder extends QuestionBuilder{
 
-	static function factory($item, $source_root, $target_root, $category){
+	static function factory(QtiImportSettings $settings){
 		if(!defined("ESSAY")){
 			return null;
 		}
 
+		$item = $settings->get_reader();
+		$category = $settings->get_category();
+
+		//if it is a reimport
+		if($data = $settings->get_data()){
+			if($data->qtype == ESSAY){
+				return new self($category);
+			}else{
+				return null;
+			}
+		}
 		$count = count($item->list_interactions());
 		$main = self::get_main_interaction($item);
 		$has_answers = self::has_answers($item, $main);
 		if($count == 1 && $main->is_extendedTextInteraction() && !$has_answers){
-			return new self($source_root, $target_root, $category);
+			return new self($category);
 		}else{
 			return null;
 		}
@@ -33,10 +44,14 @@ class EssayBuilder extends QuestionBuilder{
 	}
 
 	/**
+	 * Build questions using the QTI format. Doing a projection by interpreting the file.
 	 *
-	 * @param ImsXmlReader $item
+	 * @param QtiImportSettings $settings
+	 * @return object|null
 	 */
-	public function build_qti($item){
+	public function build_qti(QtiImportSettings $settings){
+		$item = $settings->get_reader();
+
 		$result = $this->create_question();
 		$result->name = $item->get_title();
 		$result->questiontext =$this->get_question_text($item);
@@ -46,8 +61,18 @@ class EssayBuilder extends QuestionBuilder{
 		return $result;
 	}
 
-	public function build_moodle($data){
-		$result = parent::build_moodle($data);
+	/**
+	 * Build questions using moodle serialized data. Used for reimport, i.e. from Moodle to Moodle.
+	 * Used to process data not supported by QTI and to improve performances.
+	 *
+	 * @param QtiImportSettings $data
+	 * @return object|null
+	 */
+	public function build_moodle(QtiImportSettings $settings){
+		$data = $settings->get_data();
+		$result = parent::build_moodle($settings);
+		$a = reset($data->options->answers);
+		$result->feedback = $this->format_text($a->feedback);
 		return $result;
 	}
 

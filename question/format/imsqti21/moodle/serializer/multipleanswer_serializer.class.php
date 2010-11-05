@@ -80,7 +80,7 @@ class MultipleAnswerSerializer extends QuestionSerializer{
 
 	protected function add_body(ImsQtiWriter $item, $question){
 		$result = $item->add_itemBody();
-		$text = $this->translate_text($question->questiontext, $question->questiontextformat, $question);
+		$text = $this->translate_question_text($question->questiontext, $question->questiontextformat, $question);
 		foreach($question->options->questions as $index=>$subquestion){
 			$subquestion_id = "{#$index}";
 			$subquestion_xml = $this->get_subquestion_xml($subquestion);
@@ -102,6 +102,22 @@ class MultipleAnswerSerializer extends QuestionSerializer{
 	protected function add_interaction($body, $question){
 		return null;
 	}
+
+	/**
+	 * Returns data to be serialized on top of the QTI format.
+	 * Made of the question's object minus fields that don't have a meaning in another system.
+	 *
+	 * Remove question's fields which don't have a meaning in another system.
+	 * For example question id, user id, etc
+	 *
+	 * @param object $question
+	 * @return object
+	 */
+	protected function get_question_data($question){
+		$result = parent::get_question_data($question);
+		return $result;
+	}
+
 }
 
 

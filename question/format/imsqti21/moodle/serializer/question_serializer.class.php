@@ -154,7 +154,9 @@ class QuestionSerializer extends QuestionSerializerBase{
 		$this->response_processing = $this->add_response_processing($item, $question);
 		$this->add_modal_feedback($item, $question);
 		$this->add_question_data($item, $question);
-		return $writer->saveXML();
+		$result = $writer->saveXML();
+
+		return $result;
 	}
 
 	protected function add_assessment_item(ImsQtiWriter $writer, $question){
@@ -196,7 +198,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 
 	protected function add_body(ImsQtiWriter $item, $question){
 		$result = $item->add_itemBody();
-		$text = $this->translate_text($question->questiontext, $question->questiontextformat, $question);
+		$text = $this->translate_question_text($question->questiontext, $question->questiontextformat, $question);
 		$result->add_flow($text);
 		$this->interaction = $this->add_interaction($result, $question);
 		return $result;
@@ -228,7 +230,7 @@ class QuestionSerializer extends QuestionSerializerBase{
 		if($has_feedback = !empty($question->generalfeedback)){
 			$id = self::GENERAL_FEEDBACK;
 			$value = 'true';
-			$text = $this->translate_text($question->generalfeedback, self::FORMAT_HTML, $question);
+			$text = $this->translate_feedback_text($question->generalfeedback, self::FORMAT_HTML, $question);
 			$result = $item->add_modalFeedback($id, $value, 'show')->add_flow($text);
 			return $result;
 		}else{
@@ -350,8 +352,10 @@ class QuestionSerializer extends QuestionSerializerBase{
 		return $result;
 	}
 
-	//
-
+	/**
+	 * Serialize additional information not or not well supported by QTI.
+	 * Used for reimport.
+	 */
 	protected function add_question_data(ImsQtiWriter $item, $question){
 		$id = self::MOODLE_QUESTION_DATA;
 		$value = 'true';
@@ -390,6 +394,27 @@ class QuestionSerializer extends QuestionSerializerBase{
 				foreach($question->options->subquestions as $q){
 					unset($q->question);
 				}
+			}
+		}
+
+		/**
+		 * note: @@PLUGINFILE@@ have to be replaced ->before<- the object is serialized.
+		 * Doing it after - i.e. after the xml file has been generated - will fail because it changes the length of string
+		 */
+		$question->questiontext = str_replace('@@PLUGINFILE@@', 'resources', $question->questiontext);
+
+		if(isset($question->generalfeedback)){
+			$question->generalfeedback = str_replace('@@PLUGINFILE@@', 'resources', $question->generalfeedback);
+		}
+		if(isset($question->options)){
+			if(isset($question->options->correctfeedback)){
+				$question->correctfeedback = str_replace('@@PLUGINFILE@@', 'resources', $question->options->correctfeedback);
+			}
+			if(isset($question->options->partiallycorrectfeedback)){
+				$question->partiallycorrectfeedback = str_replace('@@PLUGINFILE@@', 'resources', $question->options->partiallycorrectfeedback);
+			}
+			if(isset($question->options->incorrectfeedback)){
+				$question->incorrectfeedback = str_replace('@@PLUGINFILE@@', 'resources', $question->options->incorrectfeedback);
 			}
 		}
 

@@ -22,7 +22,7 @@ class QtiImport{
 	private $importerrors = 0;
 
 	private $base_temp = '';
-	private $resources = array();
+	private $questions = array();
 
 	/**
 	 * @var Log
@@ -43,6 +43,7 @@ class QtiImport{
 		$this->category = $category;
 		$this->course = $course;
 		$this->stoponerror = $stoponerror;
+		$this->questions = array();
 
 		try{
 			$result = $this->execute_import($filename, $realfilename, $course, $category, $stoponerror);
@@ -54,18 +55,15 @@ class QtiImport{
 		}
 	}
 
-	public function get_questions($filename, $realfilename){
-		$this->notify_lang('parsingquestions');
-		$this->filename = $filename;
-		$this->realfilename = $realfilename;
+	public function process_archive($filename, $realfilename){
 		if($this->is_archive($realfilename)){
 			if($this->base_temp = MoodleUtil::extract_archive($filename)){
-				$result = $this->get_questions_from_directory($this->base_temp);
+				$result = $this->process_directory($this->base_temp);
 			}else{
 				$result = false;
 			}
 		}else{
-			$result = $this->get_questions_from_file($filename);
+			$result = $this->process_file($filename);
 		}
 		return $result;
 	}
@@ -75,19 +73,17 @@ class QtiImport{
 	}
 
 	public function save_questions($questions, $course, $category, $stoponerror){
-		$this->category = $category;
-		$this->course = $course;
+		$questions = is_array($questions) ? $questions : array($questions);
 
-		$count = 0;
 		foreach($questions as $question){
-			$this->reset_time_limit();
 			if($this->is_category($question)){
 				if($c = $this->save_category($question)) {
 					$category = $c;
 				}
 			}else{
 				$result = $this->save_question($question, $course, $category);
-				$this->print_question($question, ++$count);
+				$this->questions[] = $question;
+				$this->print_question($question, count($this->questions));
 				if(!empty($result->notice)){
 					$this->notify($result->notice);
 				}
@@ -109,65 +105,63 @@ class QtiImport{
 	}
 
 	protected function execute_import($filename, $realfilename, $course, $category, $stoponerror){
+		$this->notify_lang('importingquestions', '', '');
 		$this->importerrors = 0;
 
-		$questions = $this->get_questions($filename, $realfilename);
+		$this->process_archive($filename, $realfilename);
 
 		if ($stoponerror && $this->importerrors>0) {
 			$this->notify_lang('importparseerror');
 			return false;
 		}
-		$this->notify_lang('importingquestions', '', count($questions));
-		$this->save_questions($questions, $course, $category, $stoponerror);
-		$this->save_resources();
+
 		$this->cleanup();
 		$this->write('<hr/>');
 		$this->notify_lang('done');
 		$this->notify_lang('checkimportedquestion');
-		return $questions;
+		return $this->questions;
 	}
 
-	protected function get_questions_from_directory($directory){
+	protected function process_directory($directory){
 		$result = array();
 		$directory = rtrim($directory, '/') . '/';
 		$entries = scandir($directory);
 		foreach($entries as $entry){
 			$path = $directory . $entry;
 			if(is_file($path) && $this->is_question_file($path)){
-				if($file_questions = $this->get_questions_from_file($path)){
-					//$this->notify($entry);
+				if($file_questions = $this->process_file($path)){
 					$result = array_merge($result, $file_questions);
 				}
 			}else if(is_dir($path) && $entry != '.' && $entry != '..' ){
-				$directory_questions = $this->get_questions_from_directory($path);
+				$directory_questions = $this->process_directory($path);
 				$result = array_merge($result, $directory_questions);
 			}
 		}
 		return $result;
 	}
 
-	protected function get_questions_from_file($filename){
+	protected function process_file($filename){
 		if(!file_exists($filename)){
 			return array();
 		}
+
+		$this->reset_time_limit();
+
+		$settings = new QtiImportSettings($filename, $this->get_base_temp(), $this->get_base_url(), $this->get_category());
+
 		$result = array();
-		$reader = new ImsQtiReader($filename, false);
-		$items = $reader->query('/def:assessmentItem');
-		foreach($items as $item){
-			if($builder = $this->create_builder($item)){
-				$question = $builder->build($item);
+		if($builder = $this->create_builder($settings)){
+			$question = $builder->build($settings);
 
-				if(empty($question)){
-					$this->notify_lang('importerror');
-					$this->importerrors++;
-				}else{
-					$result[] = $question;
-
-					$this->resources = array_merge($this->resources, $builder->get_resources());
-				}
+			if(empty($question)){
+				$this->notify_lang('importerror');
+				$this->importerrors++;
 			}else{
-				$this->notify_lang('unknownquestiontype', '', $item->title .' (' . basename($filename) .')');
+				$this->save_questions($question, $this->course, $this->category, $this->stoponerror);
+				$result[] = $question;
 			}
+		}else{
+			$this->notify_lang('unknownquestiontype', '', $settings->get_reader()->title .' (' . basename($filename) .')');
 		}
 		return $result;
 	}
@@ -199,6 +193,8 @@ class QtiImport{
 	protected function save_question($question, $course, $category){
 		global $USER, $DB;
 
+		$this->reset_time_limit();
+
 		if(!isset($question->course)){
 			$question->course = $course->id;
 		}
@@ -207,7 +203,9 @@ class QtiImport{
 		$question->stamp = make_unique_id_code();  // Set the unique code (not to be changed)
 
 		$question->createdby = $USER->id;
+		$question->modifiedby = $USER->id;
 		$question->timecreated = time();
+		$question->timemodified = $question->timecreated;
 
 		$question->id = $DB->insert_record("question", $question);
 
@@ -217,6 +215,8 @@ class QtiImport{
 
 		// Give the question a unique version stamp determined by question_hash()
 		$DB->set_field('question', 'version', question_hash($question), array('id'=>$question->id));
+
+		$this->save_resources($question);
 
 		return $result;
 	}
@@ -250,54 +250,48 @@ class QtiImport{
 		return $this->base_temp;
 	}
 
-	protected function get_base_target(){
-		$file = $this->get_base_file();
-		global $CFG;
-		return "{$CFG->dataroot}/{$this->course->id}/$file/";
-	}
-
 	protected function get_category(){
 		return $this->category;
 	}
 
-	protected function create_builder($item){
-		return QuestionBuilder::factory($item, $this->get_base_temp(), $this->get_base_url(), $this->get_category());
+	protected function create_builder($settings){
+		return QuestionBuilder::factory($settings);
 	}
 
-	protected function save_resources(){
-		$files = $this->resources;
-		foreach($files as $url => $path){
-			$this->save_resource($path);
+	protected function save_resources($question){
+		foreach($question->resources as $name => $path){
+			$this->save_resource($question, $name, $path);
 		}
 	}
 
-	protected function save_resource($path){
+	protected function save_resource($question, $name, $path){
 		try{
-			$context = get_context_instance(CONTEXT_COURSE, $this->course->id);
+			$context = $question->context;
 			$contextid = $context->id;
-			$from_path = $path;
-			$filepath = dirname($path);
-			$filepath = str_replace($this->get_base_temp(), '', $filepath);
-			$filepath = '/'. $this->get_base_file() .'/'. trim($filepath, '/') .'/' ;
+			$filepath = '/';
+			$component = 'question';
 			$filearea = 'questiontext';
-			$filename = basename($path);
-			$itemid = 0;
+			$itemid = $question->id;
+			$filename = $name;
 
 			$fs = get_file_storage();
-			if($fs->file_exists($contextid, 'question', 'questiontext', $itemid, $filepath, $filename)){
-				$fs->delete_area_files($contextid, 'question', $filearea, $itemid);
+			if($fs->file_exists($contextid, $component, $filearea, $itemid, $filepath, $filename)){
+				$fs->delete_area_files($contextid, $component, $filearea, $itemid);
 				$fs->cron();
 			}
 
-			$file_record = array(	'contextid'=>$contextid, 'component' => 'question',
-								 	'filearea'=>'questiontext', 'itemid'=>$itemid,
-	    							'filepath'=>$filepath, 'filename'=>$filename,
-	    							'timecreated'=>time(), 'timemodified'=>time());
-			$fs->create_file_from_pathname($file_record, $from_path);
+			$time = time();
+			global $USER;
+			$file_record = array(	'contextid'=>$contextid,
+									'component' => $component,
+								 	'filearea'=>$filearea,
+								 	'itemid'=>$itemid,
+	    							'filepath'=>$filepath,
+	    							'filename'=>$filename,
+									'userid' => $USER->id);
+			$r = $fs->create_file_from_pathname($file_record, $path);
 		}catch(Exception $e){
 			debug($path);
-			debug($e);
-			die;
 			$this->notify_lang('cannotimportfile');
 		}
 	}

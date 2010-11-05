@@ -120,7 +120,7 @@ class NumericalSubquestionSerializer extends SubquestionSerializer{
 	 	foreach($question->options->answers as $answer){
 		    $answer_id = $this->answer_id($answer);
 		    if($has_feeback = !empty($answer->feedback)){
-		    	$text = $this->translate_text($answer->feedback, self::FORMAT_HTML, $question);
+		    	$text = $this->translate_feedback_text($answer->feedback, self::FORMAT_HTML, $question);
 		        $item->add_modalFeedback($feedback_id, $answer_id, 'show')->add_flow($text);
 		    }
 		}
