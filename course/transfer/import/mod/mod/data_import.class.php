@@ -43,6 +43,7 @@ class data_import extends mod_import{
 		$text = file_get_contents($path);
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name = $this->read($settings->get_dom(), 'title');
 		$data->intro = $this->read($settings->get_dom(), 'description');

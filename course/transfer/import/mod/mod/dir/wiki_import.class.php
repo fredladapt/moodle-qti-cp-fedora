@@ -35,11 +35,11 @@ class wiki_import extends imscp_manifest_import{
 	protected function process_import(import_settings $settings){
 		$result = $this->create($settings);
 		$result = $this->insert($settings, 'wiki', $result) ? $result : false;
-		 
+
 		if(!$result){
 			return false;
 		}
-		
+
 		//create subwiki
 		global $DB, $USER;
 		$subwiki = new object();
@@ -50,12 +50,12 @@ class wiki_import extends imscp_manifest_import{
 		if(!$subwiki->id){
 			return false;
 		}
-		 
+
 		//import wikipages
 		$this->set_parent_id($subwiki->id);
 		$this->import_manifest($settings);
 		$this->reset_parent_id();
-		
+
 		//set wiki->firstpagetitle = firstpage->title
 		global $DB;
 		$pages = $DB->get_records('wiki_pages', array('subwikiid'=> $subwiki->id), 'subwikiid ASC');
@@ -70,6 +70,7 @@ class wiki_import extends imscp_manifest_import{
 
 	protected function create(import_settings $settings){
 		$result = new stdClass();
+		$result->resources = array();
 		$result->course = $settings->get_course_id();
 		$result->name = $this->get_title($settings);
 		$result->intro = '<p>'.$result->name.'</p>';

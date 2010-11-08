@@ -40,6 +40,7 @@ class quiz_import extends mod_import{
 		}
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name =  $reader->get_root()->title;
 		$data->intro = "<p>$data->name</p>";

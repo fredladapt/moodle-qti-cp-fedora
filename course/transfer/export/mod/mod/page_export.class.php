@@ -18,6 +18,8 @@ class page_export extends mod_export{
 		$content = $this->format_page($mod);
 		$href = $this->safe_name($mod->name).'.page.html';
 
+		$this->export_file_areas($settings);
+
 		$this->add_manifest_entry($settings, $mod->name, $href);
 		return file_put_contents("$path/$href", $content);
 	}
@@ -48,6 +50,7 @@ class page_export extends mod_export{
 		$result .= '<div class="description" '. $intro_style .'>'. $description . '</div>';
 		$result .= '<div class="content">'. $content . '</div>';
 		$result .= '</body></html>';
+		$result = str_replace('@@PLUGINFILE@@', 'resources', $result);
 		return $result;
 	}
 

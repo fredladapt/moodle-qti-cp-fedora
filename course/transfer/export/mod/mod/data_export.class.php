@@ -25,6 +25,8 @@ class data_export extends mod_export{
 		$content = $this->format_page($mod);
 		$href = $this->safe_name($mod->name).'.table.html';
 
+		$this->export_file_areas($settings);
+
 		$this->add_manifest_entry($settings, $mod->name, $href);
 		$this->context = false;
 		$this->settings = false;

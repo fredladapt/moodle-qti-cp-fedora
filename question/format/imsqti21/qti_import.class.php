@@ -236,7 +236,6 @@ class QtiImport{
 
 	protected function get_base_url(){
 		$file = $this->get_base_file();
-		//$result = "/moodle/file.php/{$this->course->id}/$file/";
 		$result = '@@PLUGINFILE@@/';
 		return $result;
 	}

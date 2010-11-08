@@ -38,11 +38,12 @@ class page_import extends mod_import{
 		$text = file_get_contents($path);
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name = $this->read($settings, 'title');
-		$data->intro = $this->read($settings, 'description');
+		$data->intro = $this->get_description($settings, $data);
 		$data->introformat = FORMAT_HTML;
-		$data->content =  $this->read($settings, 'content');
+		$data->content = $this->get_content($settings, $data);
 		$data->contentformat= FORMAT_HTML;
 		$data->legacyfiles = 0;
 		$data->legacyfileslast = null;
@@ -52,26 +53,11 @@ class page_import extends mod_import{
 		return $this->insert($settings, 'page', $data) ? $data : false;
 	}
 
-	protected function read(import_settings $settings, $name, $default = ''){
-		if($doc = $settings->get_dom()){
-			$list = $doc->getElementsByTagName('div');
-			foreach($list as $div){
-				if(strtolower($div->getAttribute('class')) == $name){
-					$result = $this->get_innerhtml($div);
-					$result = str_ireplace('<p>', '', $result);
-					$result = str_ireplace('</p>', '', $result);
-					return $result;
-				}
-			}
-			$list = $doc->getElementsByTagName('body');
-			if($body = $list->length>0 ? $list->item(0) : NULL){
-				$body = $doc->saveXML($body);
-				$body = str_replace('<body>', '', $body);
-				$body = str_replace('</body>', '', $body);
-			}else{
-				$body = '';
-			}
-		}
-		return $default;
+	protected function get_content(import_settings $settings, $data){
+		$result = $this->read($settings, 'content');
+		$result = $this->translate($settings, $data, 'content', $result);
+		return $result;
 	}
+
+
 }

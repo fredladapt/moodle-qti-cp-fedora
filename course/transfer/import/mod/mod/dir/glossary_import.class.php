@@ -34,11 +34,11 @@ class glossary_import extends imscp_manifest_import{
 	protected function process_import($settings){
 		$result = $this->create($settings);
 		$result = $this->insert($settings, 'glossary', $result) ? $result : false;
-		 
+
 		if(!$result){
 			return false;
 		}
-		 
+
 		$this->set_parent_id($result->id);
 		$this->import_manifest($settings);
 		$this->reset_parent_id();
@@ -48,6 +48,7 @@ class glossary_import extends imscp_manifest_import{
 
 	protected function create(import_settings $settings){
 		$result = new stdClass();
+		$result->resources = array();
 		$result->name = $this->get_title($settings);
 		$result->intro = '<p>' . $result->name . '</p>';
 		$result->introformat = FORMAT_HTML;

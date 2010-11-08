@@ -17,7 +17,7 @@ class scorm_import extends mod_import{
 	public function accept(import_settings $settings){
 		$manifest = $settings->get_manifest_reader();
 		$name = $manifest->get_root()->name();
-		$location = $manifest->get_root()->get_attribute('xsi:schemaLocation');		
+		$location = $manifest->get_root()->get_attribute('xsi:schemaLocation');
 		return $name == 'manifest' && strpos($location, 'http://www.adlnet.org') !== false;
 	}
 
@@ -25,8 +25,10 @@ class scorm_import extends mod_import{
 		$cid = $settings->get_course_id();
 		$path = $settings->get_path();
 		$filename = $settings->get_filename();
-		
+
 		$cfg_scorm = get_config('scorm');
+		$data = new stdClass();
+		$data->resources = array();
 		$data->name = empty($filename) ? basename($path) : trim_extention($filename);
 		$data->intro = $data->name;
 		$data->scormtype = SCORM_TYPE_LOCAL;
@@ -64,7 +66,7 @@ class scorm_import extends mod_import{
 		foreach($entries as $entry){
 			$files[$entry] = $path . '/'. $entry;
 		}
-		
+
 
 		$zipper = new zip_packer();
 		$result = $zipper->archive_to_storage($files, $context->id, 'mod_scorm', 'package', 0, '/', $filename);

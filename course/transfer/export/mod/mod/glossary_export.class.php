@@ -23,6 +23,9 @@ class glossary_export extends mod_export{
 			file_put_contents("$path/$href/$name", $content);
 			$this->add_submanifest_entry($manifest, $organization, $resources, $entry->concept, $name);
 		}
+
+		$this->export_file_areas($settings, $href);
+
 		$manifest->save("$path/$href/imsmanifest.xml");
 		$this->add_manifest_entry($settings, $mod->name, $href, 'glossary.imscp');
 	}
@@ -37,6 +40,7 @@ class glossary_export extends mod_export{
 		$result .= '<div class="title">'.$title.'</div>';
 		$result .= '<div class="description">'. $description . '</div>';
 		$result .= '</body></html>';
+		$result = str_replace('@@PLUGINFILE@@', 'resources', $result);
 		return $result;
 	}
 

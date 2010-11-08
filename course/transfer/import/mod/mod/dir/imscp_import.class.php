@@ -16,13 +16,13 @@ class imscp_import extends mod_import{
 	public function get_file_itemid(){
 		return 1;
 	}
-	
+
 	public function accept(import_settings $settings){
 		$manifest = $settings->get_manifest_reader();
 		$name = $manifest->get_root()->name();
 		$location = $manifest->get_root()->get_attribute('xsi:schemaLocation');
 		return $name == 'manifest' && strpos($location, 'http://www.imsglobal.org') !== false;
-		
+
 		/*
 				$root = $doc->documentElement;
 				if($root->nodeName == 'manifest'){
@@ -34,7 +34,7 @@ class imscp_import extends mod_import{
 					}
 				}
 		$path = $settings->get_path();
-		
+
 		return is_dir($path);*/
 	}
 
@@ -42,9 +42,10 @@ class imscp_import extends mod_import{
 		$cid = $settings->get_course_id();
 		$path = $settings->get_path();
 		$filename = $settings->get_filename();
-		
+
 		global $DB;
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name =  empty($filename) ? basename($path) : trim_extention($filename);
 		$data->intro = '<p>'.$data->name.'</p>';
@@ -52,15 +53,15 @@ class imscp_import extends mod_import{
 		$data->revision = 1;
 		$data->keepold = 1;
 		$data->structure = null;
-		
+
 		$cm = $this->insert($settings, 'imscp', $data);
-		
+
 		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 		$this->add_directory_content($path, $context);
 
 		$data = $DB->get_record('imscp', array('id'=>$data->id), '*', MUST_EXIST);
 		$structure = imscp_parse_structure($data, $context);
-		
+
 		$data->structure = is_array($structure) ? serialize($structure) : null;
 		$DB->update_record('imscp', $data);
 		return $data;

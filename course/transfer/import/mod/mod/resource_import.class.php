@@ -33,6 +33,7 @@ class resource_import extends mod_import{
 		}
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name =  trim_extention($filename);
 		$data->intro = "<p>$filename</p>";

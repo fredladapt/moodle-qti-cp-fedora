@@ -125,6 +125,10 @@ class import_settings{
 		return $this->path;
 	}
 
+	public function get_directory(){
+		return dirname($this->path) . '/';
+	}
+
 	public function get_course_id(){
 		return $this->course_id;
 	}
@@ -236,12 +240,16 @@ class import_settings{
 		if($this->dom){
 			return $this->dom;
 		}
+		$path = $this->get_path();
+		if(! is_file($path)){
+			return null;
+		}
 
 		$doc = new DOMDocument();
 		if($doc->loadHTMLFile($this->get_path())){
 			return $this->dom = $doc;
 		}else{
-			return NULL;
+			return null;
 		}
 	}
 }

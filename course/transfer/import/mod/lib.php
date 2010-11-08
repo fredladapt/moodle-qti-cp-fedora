@@ -120,6 +120,7 @@ class mod_import{
 	protected function create(import_settings $settings){
 		$result = new stdClass();
 		$result->name = $this->get_title($settings);
+		$result->resources = array();
 		return $result;
 	}
 
@@ -133,6 +134,35 @@ class mod_import{
 		$ext = $settings->get_extention();
 		$result = str_ireplace(".$ext", '', $filename);
 		return $result;
+	}
+
+	protected function get_description(import_settings $settings, $data){
+		$result = $this->read($settings, 'description');
+		$result = $this->translate($settings, $data, 'intro', $result);
+		return $result;
+	}
+
+	protected function read(import_settings $settings, $name, $default = ''){
+		if($doc = $settings->get_dom()){
+			$list = $doc->getElementsByTagName('div');
+			foreach($list as $div){
+				if(strtolower($div->getAttribute('class')) == $name){
+					$result = $this->get_innerhtml($div);
+					$result = str_ireplace('<p>', '', $result);
+					$result = str_ireplace('</p>', '', $result);
+					return $result;
+				}
+			}
+			$list = $doc->getElementsByTagName('body');
+			if($body = $list->length>0 ? $list->item(0) : NULL){
+				$body = $doc->saveXML($body);
+				$body = str_replace('<body>', '', $body);
+				$body = str_replace('</body>', '', $body);
+			}else{
+				$body = '';
+			}
+		}
+		return $default;
 	}
 
 	/**
@@ -215,6 +245,7 @@ class mod_import{
 		$instance->id = $DB->insert_record('course_modules', $instance);
 
 		if(!empty($instance->id)){
+			$this->save_resources($settings, $instance, $data);
 			$section = $settings->get_section();
 			$section->sequence .= ',' . $instance->id;
 			$DB->update_record('course_sections', $section);
@@ -226,6 +257,37 @@ class mod_import{
 			throw new Exception('DB error');
 		}
 		return $instance;
+	}
+
+	/**
+	 * Save embeded resources. I.e. images
+	 *
+	 * @param unknown_type $settings
+	 * @param unknown_type $cm
+	 * @param unknown_type $data
+	 */
+	protected function save_resources($settings, $cm, $data){
+		global $USER;
+
+		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+		$fs = get_file_storage();
+		$component = 'mod_' . $this->get_name();
+		foreach($data->resources as $resource){
+			$file_record = array(
+            	'contextid' => $context->id,
+            	'component'  => $component,
+            	'filearea'  => $resource['filearea'],
+				'itemid'    => 0,
+				'filepath'  => '/',
+            	'filename'  => $resource['filename'],
+				'userid'    => $USER->id
+			);
+			try{
+				$r = $fs->create_file_from_pathname($file_record, $resource['path']);
+			}catch(Exception $e){
+				//debug($e);
+			}
+		}
 	}
 
 	protected function extract($path, $delete_file = true){
@@ -305,6 +367,38 @@ class mod_import{
 
 	}
 
+	// TRANSLATE RELATIVE PATH
+
+	protected function translate(import_settings $settings, $data, $filearea, $text){
+		$pattern = '/src="[^"]*"/';
+		$matches = array();
+		preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
+		foreach($matches as $match){
+			$match = reset($match);
+			$match = str_replace('src="', '', $match);
+			$match = trim($match, '"');
+			$replace = $this->translate_path($match);
+			$text = str_ireplace('src="'. $match . '"','src="'.  $replace. '"', $text);
+			$name = end(explode('/', $match));
+			$file_path = $settings->get_directory() . $match;
+			$data->resources[$name] = array('filename' => $name, 'path' => $file_path, 'filearea' => $filearea);
+		}
+		return $text;
+	}
+
+	protected function translate_path($path){
+		if(! $this->is_path_relative($path)){
+			return $path;
+		}
+
+		$name = end(explode('/', $path));
+		$result = '@@PLUGINFILE@@/' . $name;
+		return $result;
+	}
+
+	public function is_path_relative($path){
+		return strlen($path)<5 || strtolower(substr($path, 0, 4)) != 'http';
+	}
 }
 
 /**

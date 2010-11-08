@@ -34,12 +34,113 @@ class mod_export{
 		return $result;
 	}
 
+	/**
+	 * Returns true if the current class provides export functionnalities for $module.
+	 *
+	 * @param object $module module to module
+	 * @return boolean Returns true if the current class provides export functionalities for $module. False otherwise.
+	 */
 	public function accept($module){
 		return $module->name == $this->get_name();
 	}
 
 	function export(export_settings $settings){
 		return false;
+	}
+
+	protected function export_as_page(export_settings $settings){
+		$path = $settings->get_path();
+		$mod = $settings->get_course_module();
+		$content = $this->format_as_page($settings);
+
+		$name = $this->safe_name($mod->name);
+		$mod_name = $this->get_name();
+		$href = "$name.{$mod->assignmenttype}.$mod_name.html";
+		$this->add_manifest_entry($settings, $mod->name, $href);
+		$result = file_put_contents("$path/$href", $content);
+
+		$this->export_file_areas($settings);
+
+		return $result;
+	}
+
+	/**
+	 * Export standard file ares to the $subdir folder
+	 *
+	 * @param export_settings $settings
+	 * @param string $subdir
+	 */
+	protected function export_file_areas(export_settings $settings, $subdir = ''){
+		$contextid = $settings->get_context()->id;
+		$path = $settings->get_path() . $subdir . '/resources/';
+
+		$this->copy_file_area($contextid, $path, 'intro');
+		$this->copy_file_area($contextid, $path, 'attachments');
+		$this->copy_file_area($contextid, $path, 'entry');
+		$this->copy_file_area($contextid, $path, 'content');
+		//todo: could call mod_get_file_areas instead of harcoding
+	}
+
+	/**
+	 * Module data exported as an hidden field when the export format permits it.
+	 *
+	 * @param export_settings $settings
+	 */
+	protected function get_data(export_settings $settings){
+		$mod = $settings->get_course_module();
+		$mod = clone $mod;
+		unset($mod->id);
+		unset($mod->course_module_id);
+		$mod->intro = str_replace('@@PLUGINFILE@@', 'resources', $mod->intro);
+		return serialize($mod);
+	}
+
+
+	/**
+	 * Copy all files contained in a file area to a directory folder
+	 *
+	 * @param export_settings $settings
+	 * @param string $filearea
+	 */
+	protected function copy_file_area($contextid, $todir, $filearea = 'intro'){
+		global $CFG;
+		$component = 'mod_' . $this->get_name();
+
+		if (!file_exists($todir)){
+			mkdir($todir, $CFG->directorypermissions, true);
+		}
+
+		$fs = get_file_storage();
+		$files = $fs->get_area_files($contextid, $component,  $filearea);
+		foreach($files as $fi){
+			if($fi->get_filename() !== '.'){
+				$filepath = $todir. $fi->get_filename();
+				$fi->copy_content_to($filepath);
+			}
+		}
+	}
+
+	/**
+	 * Format the module to a web page containing the title and description
+	 *
+	 * @param export_settings $settings
+	 */
+	protected function format_as_page(export_settings $settings){
+		$mod = $settings->get_course_module();
+		$css = $this->get_main_css();
+		$title = $mod->name;
+		$description = $mod->intro;
+		$description = str_ireplace('<p>', '', $description);
+		$description = str_ireplace('</p>', '', $description);
+		$result = "<html><head>$css<title>$title</title></head><body>";
+		$result .= '<div class="title">'.$title.'</div>';
+		$result .= '<div class="description">'. $description . '</div>';
+		if($data = $this->get_data($settings)){
+			$result .= '<div class="data" style="display:hidden">' . $data .'</div>';
+		}
+		$result .= '</body></html>';
+		$result = str_replace('@@PLUGINFILE@@', 'resources', $result);
+		return $result;
 	}
 
 	protected function file_info_copy_to_pathname($fi, $temp, $recursive = true){
@@ -62,6 +163,7 @@ class mod_export{
 			$fi->copy_to_pathname($path);
 			return $path;
 		}else{
+			$result = false;
 			$files = $fi->get_children();
 			foreach($files as $file){
 				if(!$file->is_directory()){
@@ -111,13 +213,6 @@ class mod_export{
 		$result .= '</style>';
 		return $result;
 	}
-
-	/*
-	 protected function get_module($cid, $mid){
-		global $DB;
-		$cm = get_coursemodule_from_id('quiz', $mid, $cid, false, MUST_EXIST);
-		return $DB->get_record('quiz', array('id'=>$cm->instance), '*', MUST_EXIST);
-		}*/
 
 }
 

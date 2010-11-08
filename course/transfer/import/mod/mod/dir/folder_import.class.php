@@ -28,6 +28,7 @@ class folder_import extends mod_import{
 		$filename = $settings->get_filename();
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name =  empty($filename) ? basename($path) : trim_extention($filename);
 		$data->intro = '<p>'.$data->name.'</p>';

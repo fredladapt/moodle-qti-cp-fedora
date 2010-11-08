@@ -39,9 +39,10 @@ class assignment_import extends mod_import{
 		$assignmenttype = $parts[count($parts)-3];
 
 		$data = new StdClass();
+		$data->resources = array();
 		$data->course = $cid;
 		$data->name = $this->read($settings, 'title');
-		$data->intro = $this->read($settings, 'description');
+		$data->intro = $this->get_description($settings, $data);
 		$data->introformat = FORMAT_HTML;
 		$data->assignmenttype = $assignmenttype;
 		$data->preventlate = 0;
@@ -92,31 +93,11 @@ class assignment_import extends mod_import{
 		$data->timedue = time()+7*24*3600;
 		$data->timeavailable = time();
 		$data->grade = 100;
+		$data->cmidnumber = '';
 		$result = $this->insert($settings, 'assignment', $data) ? $data : false;
-		return $result;
-	}
 
-	protected function read(import_settings $settings, $name, $default = ''){
-		if($doc = $settings->get_dom()){
-			$list = $doc->getElementsByTagName('div');
-			foreach($list as $div){
-				if(strtolower($div->getAttribute('class')) == $name){
-					$result = $this->get_innerhtml($div);
-					$result = str_ireplace('<p>', '', $result);
-					$result = str_ireplace('</p>', '', $result);
-					return $result;
-				}
-			}
-			$list = $doc->getElementsByTagName('body');
-			if($body = $list->length>0 ? $list->item(0) : NULL){
-				$body = $doc->saveXML($body);
-				$body = str_replace('<body>', '', $body);
-				$body = str_replace('</body>', '', $body);
-			}else{
-				$body = '';
-			}
-		}
-		return $default;
+        assignment_grade_item_update($result);
+		return $result;
 	}
 
 }
