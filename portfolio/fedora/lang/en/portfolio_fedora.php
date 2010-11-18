@@ -3,6 +3,7 @@
 $string['pluginname'] = 'Fedora';
 
 $string['base_url'] = 'Base URL';
+$string['content_access_url'] = ' Content access url';
 $string['client_certificate_file'] = 'Client certificate file';
 $string['client_certificate_key_file'] = 'Client certificate key file';
 $string['client_certificate_key_password'] = 'Client certificate key password';
@@ -12,7 +13,8 @@ $string['basic_login'] = 'Login';
 $string['basic_password'] = 'Password';
 $string['max_results'] = 'Max results';
 
-$string['base_url_help'] = 'Enter the base url to your fedora repository. <br/>Make sure to enter http<b>s</b> if you need secured access as the current implementation doesn\'t support redirections.<p>Default: https://(your domain)/fedora</p>';
+$string['base_url_help'] = 'Enter the base url to your fedora repository. <br />Make sure to enter http<b>s</b> if you need secured access as the current implementation doesn\'t support redirections.<p>Default: https://(your domain)/fedora</p>';
+$string['content_access_url_help'] = 'Enter the URL used to get the object\'s content. <br />Make sure to enter http<b>s</b> if you need secured access as the current implementation doesn\'t support redirections.<p>Default: https://(your domain)/fedora/objects/$pid/datastreams/$dsID/content</p>';
 $string['api_help'] = 'Select an API to access Fedora. The API sets how your fedora instance is accessed. I.e. query methods, metadata, use of collections or not, etc. <p>Default: UniGe</p>';
 $string['client_certificate_file_help'] = 'File path to the certificate used for autentication. If not needed leave blank. <p>Default: contact your system administrator.</p>';
 $string['client_certificate_key_file_help'] = 'File path to your private key. Used for authentication. If not needed leave blank. <p>Default: contact your system administrator.</p>';

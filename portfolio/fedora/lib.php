@@ -56,6 +56,7 @@ class portfolio_plugin_fedora extends portfolio_plugin_push_base {
         			  'basic_login',
         			  'basic_password',
         			  'max_results',
+					  'content_access_url',
 		);
 	}
 
@@ -139,6 +140,9 @@ class portfolio_plugin_fedora extends portfolio_plugin_push_base {
 	public function admin_config_form(&$mform){
 		$size = 50;
 		$mform->addElement('text', $name = 'base_url', get_string('base_url', 'portfolio_fedora'), array('size' =>$size));
+		$mform->addHelpButton($name, $name, 'portfolio_fedora');
+
+		$mform->addElement('text', $name = 'content_access_url', get_string('content_access_url', 'portfolio_fedora'), array('size' =>$size));
 		$mform->addHelpButton($name, $name, 'portfolio_fedora');
 
 		$mform->addElement('select', $name = 'api', get_string('api', 'portfolio_fedora'), self::get_api_names());
@@ -260,25 +264,6 @@ class portfolio_plugin_fedora extends portfolio_plugin_push_base {
 
 	public function send_package() {
 		return $this->get_api()->send_package();
-		/*
-		global $USER;
-		$fedora = $this->get_fedora();
-		$result = array();
-		foreach($this->exporter->get_tempfiles() as $file){
-
-			$meta = new fedora_object_meta();
-			$meta->pid = $fedora->get_nextPID();
-			$meta->label = isset($this->exportconfig['title']) ? $this->get_export_config('title') : $file->get_filename();
-			$meta->mime = $file->get_mimetype();
-			$meta->owner = isset($this->exportconfig['owner']) ? $this->get_export_config('owner') : (empty($USER->idnumber) ? $USER->idnumber : $USER->email());
-
-			$content = $file->get_content();
-
-			$foxml = $this->get_api()->content_to_foxml($content, $meta, $this->exportconfig);
-
-			$result[] = $fedora->ingest($foxml, $meta->pid, $meta->label, $meta->owner);
-		}
-		return true;*/
 	}
 
 	public function cleanup(){

@@ -29,6 +29,14 @@ class api_base{
 		return $this->portfolio->get_fedora();
 	}
 
+	public function get_fedora_config(){
+		return $this->portfolio->get_fedora_config();
+	}
+
+	public function get_config($key){
+		return $this->portfolio->get_config($key);
+	}
+
 	public function get_owner(){
 		global $USER;
 		if(!empty($USER->idnumber)){
@@ -39,7 +47,7 @@ class api_base{
 	}
 
 	/**
-	 * Returns the default title. That is the temporary file name. 
+	 * Returns the default title. That is the temporary file name.
 	 */
 	public function get_default_title(){
 		$result = '';
@@ -111,15 +119,15 @@ class api_base{
 	public function content_to_foxml($content, $meta, $export_config){
 		return fedora_content_to_foxml($content, $meta);
 	}
-	
+
 	public function send_package() {
 		$result = array();
-		
+
 		$portfolio = $this->get_portfolio();
 		$fedora = $this->get_fedora();
 		$exportconfig = $portfolio->get('exportconfig');
-		
-		$files = $portfolio->get('exporter')->get_tempfiles(); 
+
+		$files = $portfolio->get('exporter')->get_tempfiles();
 		foreach($files as $file){
 			$meta = new fedora_object_meta();
 			$meta->pid = $fedora->get_nextPID();

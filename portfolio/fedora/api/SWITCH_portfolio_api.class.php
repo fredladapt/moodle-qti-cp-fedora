@@ -176,6 +176,11 @@ class SWITCH_portfolio_api extends api_base{
 				$switch->{$key} = $export_config[$key];
 			}
 		}
+		$source = $this->get_config('content_access_url');
+		$source = $source ? $source : rtrim($this->get_config('base_url'), '/') . '/objects/$pid/datastreams/$dsID/content';
+		$source = str_ireplace('$dsid', 'DS1', $source);
+		$source = str_ireplace('$pid', $meta->pid, $source);
+		$switch->source = $source;
 		return SWITCH_content_to_foxml($content, $meta, $switch);
 	}
 
@@ -193,7 +198,6 @@ class SWITCH_portfolio_api extends api_base{
 	}
 
 	public function send_package() {
-		$result = array();
 
 		$portfolio = $this->get_portfolio();
 		$fedora = $this->get_fedora();
@@ -208,12 +212,28 @@ class SWITCH_portfolio_api extends api_base{
 		$meta->mime = $file->get_mimetype();
 		$meta->owner = $exportconfig['owner'];
 
+
+		$switch = new switch_object_meta();
+		$keys = $this->get_allowed_export_config();
+		foreach($keys as $key){
+			if(isset($exportconfig[$key])){
+				$switch->{$key} = $exportconfig[$key];
+			}
+		}
+
+		$source = $this->get_config('content_access_url');
+		$source = $source ? $source : rtrim($this->get_config('base_url'), '/') . '/objects/$pid/datastreams/$dsID/content';
+		$source = str_ireplace('$dsid', 'DS1', $source);
+		$source = str_ireplace('$pid', $meta->pid, $source);
+		$switch->source = $source;
+
 		$content = $file->get_content();
 		if(!$isnew){
-			$fedora->purge_object($meta->pid);
+			$this->update_repository_object($content, $meta, $switch);
+		}else{
+			$foxml = $this->content_to_foxml($content, $meta, $switch);
+			$fedora->ingest($foxml, $meta->pid, $meta->label, $meta->owner);
 		}
-		$foxml = $this->content_to_foxml($content, $meta, $exportconfig);
-		$result[] = $fedora->ingest($foxml, $meta->pid, $meta->label, $meta->owner);
 
 		return true;
 	}
@@ -541,4 +561,34 @@ class SWITCH_portfolio_api extends api_base{
 		return $result;
 	}
 
+	protected function update_repository_object($content, fedora_object_meta $meta, SWITCH_object_meta $switch){
+		$pid = $meta->pid;
+		$name = $label = $meta->label;
+		$mime_type = $meta->mime;
+		$this->update_data($pid, $name, $content, $mime_type);
+		$this->update_label($pid, $label);
+		$this->update_metadata($pid, $meta, $switch);
+	}
+
+	protected function update_label($pid, $label){
+		$fedora = $this->get_fedora();
+		$fedora->modify_object($pid, $label);
+		$fedora->modify_datastream($pid, 'DS1', $label);
+	}
+
+	protected function update_metadata($pid, fedora_object_meta $data, SWITCH_object_meta $switch){
+		$meta = new fedora_object_meta();
+		$meta->pid = $pid;
+
+		$fedora = $this->get_fedora();
+		$content = SWITCH_get_rels_ext($meta, $switch);
+		$fedora->modify_datastream($pid, 'RELS-EXT', 'Relationships to other objects', $content, 'application/rdf+xml');
+		$content = SWITCH_get_chor_dc($meta, $switch);
+		$fedora->update_datastream($pid, 'CHOR_DC', 'SWITCH CHOR_DC record for this object', $content, 'text/xml');
+	}
+
+	protected function update_data($pid, $name, $content, $mime_type){
+		$fedora = $this->get_fedora();
+		$fedora->update_datastream($pid, 'DS1', $name, $content, $mime_type, false);
+	}
 }

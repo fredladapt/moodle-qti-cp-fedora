@@ -909,8 +909,8 @@ class FedoraProxy extends RestProxyBase{
 	/**
 	 * Utility function. Mark an object as Deleted. Do not purge/remove the object from the server.
 	 *
-	 * @param unknown_type $pid
-	 * @param unknown_type $logMessage
+	 * @param string $pid
+	 * @param string $logMessage
 	 */
 	public function delete_object($pid, $logMessage = ''){
 		$this->modify_object($pid, false, false, 'D', $logMessage);

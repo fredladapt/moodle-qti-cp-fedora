@@ -16,6 +16,7 @@ $string['target_ca_file'] = 'Target ca file';
 $string['basic_login'] = 'login';
 $string['basic_password'] = 'password';
 $string['max_results'] = 'Max results';
+$string['show_system_datastreams'] = 'Max results';
 
 $string['base_url_help'] = 'Enter the base url to your fedora repository. <br/>Make sure to enter http<b>s</b> if you need secured access as the current implementation doesn\'t support redirections.<p>Default: https://(your domain)/fedora</p>';
 $string['api_help'] = 'Select an API to access Fedora. The API sets how your fedora instance is accessed. I.e. query methods, metadata, use of collections or not, etc. Note that in order to use the RDI API you need to have the resource index service turned on your Fedora instance.<p>Default: RDI FS</p>';
@@ -27,6 +28,7 @@ $string['target_ca_file_help'] = 'The file path to the CA certificate used to va
 $string['basic_login_help'] = 'Login used for basic authentication. Normally this is required to call the M - modification - api.<p>Default: fedoraAdmin.</p>';
 $string['basic_password_help'] = 'Password used for basic authentication. <p>Default: contact your system administrator.</p>';
 $string['max_results_help'] = 'Maximum number of records returned by Fedora. <p>Default: 250.</p>';
+$string['show_system_datastreams_help'] = 'True to display system datastreams false otherwise. <p>Default: false.</p>';
 
 $string['query'] = 'Query';
 

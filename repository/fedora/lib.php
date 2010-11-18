@@ -53,6 +53,7 @@ class repository_fedora extends repository {
         			  'basic_login',
         			  'basic_password',
         			  'max_results',
+				   	  'show_system_datastreams'
 		);
 	}
 
