@@ -104,6 +104,9 @@ class fedora_fs_sparql_query{
 			$result[] = ' { ?pid <http://purl.org/dc/terms/accessRights> \'institution\' } ';
 		}
 
+        	$result[] = '.';
+        	$result[] = ' ?pid <fedora-model:state> <fedora-model:Active>';
+
 		//leave optional constraint as last element to avoid issues.
 
 		if($is_collection === NULL){

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once dirname(__FILE__) . '/rest/rest_proxy_base.class.php';
 
@@ -577,6 +577,10 @@ class FedoraProxy extends RestProxyBase{
 		if($owner){
 			$query .= "?pid <fedora-model:ownerId> '$owner' . " ;
 		}
+
+        
+        	$query .= ' ?pid <fedora-model:state> <fedora-model:Active> .';
+
 		$query .= 'OPTIONAL {?pid <fedora-rels-ext:isCollection> ?col} FILTER( !BOUND(?col) || !?col) ';
 		$query .= '} ORDER BY DESC(?lastModifiedDate) LIMIT 1 ';
 

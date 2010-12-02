@@ -90,7 +90,7 @@ class fedora_fs_history extends fedora_fs_folder{
 		$end = $this->get_end_date();
 
 		$owner = $this->get_owner();
-		return self::sparql_count($fedora, '', 0, $start, $end, $owner, self::get_max_results());
+        	return self::itql_count($fedora, $start, $end, $owner);
 	}
 }
 
