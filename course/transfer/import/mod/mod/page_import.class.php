@@ -12,52 +12,51 @@
  * @author laurent.opprecht@unige.ch
  *
  */
-class page_import extends mod_import{
+class page_import extends mod_import {
 
-	public function accept($settings){
-		$path = $settings->get_path();
-		$name = basename($path);
-		$extentions = $this->get_extentions();
-		foreach($extentions as $ext){
-			if(strpos($name, $ext) !== false){
-				return true;
-			}
-		}
-		return false;
-	}
+    public function accept($settings) {
+        $path = $settings->get_path();
+        $name = basename($path);
+        $extentions = $this->get_extentions();
+        foreach ($extentions as $ext) {
+            if (strpos($name, $ext) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	public function get_extentions(){
-		return array('.page.html', '.page.htm');
-	}
+    public function get_extentions() {
+        return array('.page.html', '.page.htm');
+    }
 
-	protected function process_import($settings){
-		$cid = $settings->get_course_id();
-		$path = $settings->get_path();
-		$filename = $settings->get_filename();
+    protected function process_import($settings) {
+        $cid = $settings->get_course_id();
+        $path = $settings->get_path();
+        $filename = $settings->get_filename();
 
-		$text = file_get_contents($path);
+        $text = file_get_contents($path);
 
-		$data = new StdClass();
-		$data->resources = array();
-		$data->course = $cid;
-		$data->name = $this->read($settings, 'title');
-		$data->intro = $this->get_description($settings, $data);
-		$data->introformat = FORMAT_HTML;
-		$data->content = $this->get_content($settings, $data);
-		$data->contentformat= FORMAT_HTML;
-		$data->legacyfiles = 0;
-		$data->legacyfileslast = null;
-		$data->display = 5;
-		$data->displayoptions = serialize(array('printheading'=>true, 'printintro'=>true));
-		$data->revision = 1;
-		return $this->insert($settings, 'page', $data) ? $data : false;
-	}
+        $data = new StdClass();
+        $data->resources = array();
+        $data->course = $cid;
+        $data->name = $this->read($settings, 'title');
+        $data->intro = $this->get_description($settings, $data);
+        $data->introformat = FORMAT_HTML;
+        $data->content = $this->get_content($settings, $data);
+        $data->contentformat = FORMAT_HTML;
+        $data->legacyfiles = 0;
+        $data->legacyfileslast = null;
+        $data->display = 5;
+        $data->displayoptions = serialize(array('printheading' => true, 'printintro' => true));
+        $data->revision = 1;
+        return $this->insert($settings, 'page', $data) ? $data : false;
+    }
 
-	protected function get_content(import_settings $settings, $data){
-		$result = $this->read($settings, 'content');
-		$result = $this->translate($settings, $data, 'content', $result);
-		return $result;
-	}
-
+    protected function get_content(import_settings $settings, $data) {
+        $result = $this->read($settings, 'content');
+        $result = $this->translate($settings, $data, 'content', $result);
+        return $result;
+    }
 
 }

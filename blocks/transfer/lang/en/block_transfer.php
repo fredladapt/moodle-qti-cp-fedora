@@ -4,7 +4,6 @@ $string['pluginname'] = 'Transfer';
 $string['transfer'] = 'Transfer';
 $string['nothing_to_export'] = 'Nothing to export';
 $string['nothing_to_import'] = 'Nothing to import';
-$string['transfer'] = 'Transfer';
 $string['export'] = 'Export';
 $string['import'] = 'Import';
 $string['file'] = 'File';

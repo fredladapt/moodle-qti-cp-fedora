@@ -9,12 +9,12 @@
  *
  */
 class transfer_log {
-	
-	public function message($text, $class = ''){
-		global $OUTPUT;
-		echo $OUTPUT->notification($text, $class);
-	}
-	
+
+    public function message($text, $class = '') {
+        global $OUTPUT;
+        echo $OUTPUT->notification($text, $class);
+    }
+
 }
 
 /**
@@ -25,10 +25,11 @@ class transfer_log {
  * @author laurent.opprecht@unige.ch
  *
  */
-class transfer_log_empty extends transfer_log{
-	
-	public function message($text, $class= ''){
-		return false;
-	}
+class transfer_log_empty extends transfer_log {
+
+    public function message($text, $class= '') {
+        return false;
+    }
+
 }
 

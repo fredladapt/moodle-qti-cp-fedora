@@ -16,7 +16,7 @@ $string['target_ca_file'] = 'Target ca file';
 $string['basic_login'] = 'login';
 $string['basic_password'] = 'password';
 $string['max_results'] = 'Max results';
-$string['show_system_datastreams'] = 'Max results';
+$string['show_system_datastreams'] = 'Show system datastreams';
 
 $string['base_url_help'] = 'Enter the base url to your fedora repository. <br/>Make sure to enter http<b>s</b> if you need secured access as the current implementation doesn\'t support redirections.<p>Default: https://(your domain)/fedora</p>';
 $string['api_help'] = 'Select an API to access Fedora. The API sets how your fedora instance is accessed. I.e. query methods, metadata, use of collections or not, etc. Note that in order to use the RDI API you need to have the resource index service turned on your Fedora instance.<p>Default: RDI FS</p>';

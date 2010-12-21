@@ -1,4 +1,71 @@
 <?php
+$string['pluginname'] = 'Fedora';
+
+$string['base_url'] = 'URL de base';
+$string['content_access_url'] = ' URL pour accèder au contenu';
+$string['client_certificate_file'] = 'Certificat client';
+$string['client_certificate_key_file'] = 'Clefs du certificat client';
+$string['client_certificate_key_password'] = 'Mot de passe de la clefs client';
+$string['check_target_certificate'] = 'Vérifier le certificat';
+$string['target_ca_file'] = 'Fichier CA';
+$string['basic_login'] = 'Identifiant';
+$string['basic_password'] = 'Mot de passe';
+$string['max_results'] = 'Nombre maximum de résultats';
+
+$string['base_url_help'] = 'Entrer l\'url de base pour accéder à l\'entrepot de données. <br />Si l\'accès est sécurisé il faut impérativement spécifier une url en http<b>s</b>. Le module ne supportant pas les redirections.<p>Valeur par défault: https://(your domain)/fedora</p>';
+$string['content_access_url_help'] = 'Entrer l\'url pour accéder au contenu d\'un objet. <br />Si l\'accès est sécurisé il faut impérativement spécifier une url en http<b>s</b>. Le module ne supportant pas les redirections.<p>Valeur par défault: https://(your domain)/fedora/objects/$pid/datastreams/$dsID/content</p>';
+$string['api_help'] = 'Sélectionner une API pour accéder à Fedora. L\'API détermine la méthode d\'accès à Fedora. Cet à dire les requêtes disponibles, les métadonnées l\'utilisation de collections, etc. <p>Valeur par défault: UniGe</p>';
+$string['client_certificate_file_help'] = 'File path to the certificate used for autentication. If not needed leave blank. <p>Default: contact your system administrator.</p>';
+$string['client_certificate_key_file_help'] = 'Chemin d\'accès au fichier contenant votre clefs privée. La clefs est utilisée pour identifier votre instance de Moodle auprès de Fedora. Optionel. Laissez le champs vide si vous n\'utilisez pas cette méthode d\'accès. <p>Valeur par défault: contactez votre administrateur système.</p>';
+$string['client_certificate_key_password_help'] = 'Mot de passe utilisé pour accéder à votre clefs privée. <p>Valeur par défault: contactez votre administrateur système.</p>';
+$string['check_target_certificate_help'] = 'Entrez \'true\' pour vérifier si votre certificat a été fourni par fournisseur - CA - reconnu. . Entrez \'false\' ou laissez vide si vous ne voulez pas vérifier la validité de votre certificat. <p>Valeur par défault: vide.</p>';
+$string['target_ca_file_help'] = 'The file path to the CA certificate used to validate your authentication certificate.<p>Default: leave blank.</p>';
+$string['basic_login_help'] = 'Identifiant utilisé pour vous identifier auprès de Fedora. Normallement utilisé pour appeler l\'API M - pour les modifications.<p>Valeur par défaults: fedoraAdmin.</p>';
+$string['basic_password_help'] = 'Mot de passe utilisé pour vous identifier auprès de Fedora. Normallement utilisé pour appeler l\'API M - pour les modifications. <p>Valeur par défault: contactez votre administrateur système.</p>';
+$string['max_results_help'] = 'Nombre maximum de résultat retourné par Fedora. <p>Valeur par défault: 250.</p>';
+
+$string['public'] = 'Publique';
+$string['private'] = 'Privé';
+$string['api'] = 'API';
+$string['field_required'] = 'Ce champs est obligatoire';
+
+$string['owner'] = 'Propriétaire';
+$string['title'] = 'Titre';
+$string['label'] = 'Label';
+$string['creator'] = 'Autheur';
+$string['accessRights'] = 'Droits d\'accès';
+$string['rights'] = 'Droits';
+$string['license'] = 'License';
+$string['discipline'] = 'Discipline';
+$string['collections'] = 'Collections';
+$string['aaid'] = 'AAID';
+$string['contributor'] = 'Contributeur';
+$string['publisher'] = 'Editeur';
+$string['rightsHolder'] = 'Détenteur des droits';
+$string['tableOfContents'] = 'Table des matières';
+$string['abstract'] = 'Abstract';
+$string['subject'] = 'Sujet';
+$string['description'] = 'Description';
+$string['language'] = 'Langage';
+$string['educationLevel'] = 'Niveaux d\'éducation';
+$string['instructionalMethod'] = 'Méthode d\'instruction';
+$string['issued'] = 'Délivré';
+$string['alternative'] = 'Alternative';
+$string['type'] = 'Type';
+$string['extent'] = 'Extension';
+$string['source'] = 'Source';
+$string['identifier'] = 'Identifiant';
+$string['summary'] = 'Résumé';
+$string['author'] = 'Auteur';
+$string['content'] = 'Contenu';
+$string['collaborator'] = 'Collaborateur';
+$string['classification'] = 'Classification';
+$string['federation'] = 'Fédération';
+$string['institution'] = 'Institution';
+
+$string['file_exists'] = 'Le fichier existe';
+$string['true'] = 'Vraie';
+$string['false'] = 'Faux';
 
 $string['switch_discipline_1932'] = "Arts & Culture";
 $string['switch_discipline_5314'] = "Architecture";
